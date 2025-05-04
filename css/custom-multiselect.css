@@ -1,0 +1,251 @@
+/* --- Component Styles --- */
+/* Use Bootstrap classes where possible, add custom overrides */
+.custom-multi-select { /* Renamed class to be more general if needed, but keeping for compatibility */
+    position: relative;
+    /* Removed !important here */
+    display: inline-block;
+    width: 250px; /* Adjust width as needed */
+    font-family: sans-serif;
+    user-select: none;
+    vertical-align: top;
+}
+
+    /* New class for hiding the component */
+    .custom-multi-select.hidden-component {
+        display: none !important; /* Use !important here to ensure it overrides other display styles */
+    }
+
+
+/* Style the display button to look like a Bootstrap form control */
+.selected-values-display {
+    /* Use Bootstrap form-control styling */
+    display: block;
+    width: 100%;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-form-control-bg);
+    background-clip: padding-box;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    -webkit-appearance: none; /* Remove default button styles */
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: var(--bs-border-radius);
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    text-align: left; /* Align text left */
+    /* Custom overrides for single dropdown look */
+    cursor: pointer;
+    /* Removed white-space, overflow, text-overflow from here */
+    outline: none; /* Remove default focus outline */
+    min-height: calc(1.5em + .75rem + 2px); /* Match Bootstrap input height */
+    display: flex; /* Use flexbox for vertical centering */
+    align-items: center;
+    justify-content: space-between; /* Space between text and arrow */
+}
+
+    /* Custom focus style for the display button */
+    .selected-values-display:focus {
+        border-color: #86b7fe; /* Bootstrap focus color */
+        box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); /* Bootstrap focus shadow */
+    }
+
+    /* Style for the selected text span */
+    .selected-values-display .selected-text {
+        flex-grow: 1; /* Allow text to take up available space */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        /* Ensure text does not shrink below its content */
+        min-width: 0;
+    }
+
+
+    /* Style for the dropdown arrow icon */
+    .selected-values-display .dropdown-arrow {
+        margin-left: 0.5rem; /* Space between text and arrow */
+        flex-shrink: 0; /* Prevent arrow from shrinking */
+        transition: transform 0.2s ease-in-out; /* Smooth rotation */
+    }
+
+    /* Rotate arrow when dropdown is open */
+    .selected-values-display[aria-expanded="true"] .dropdown-arrow {
+        transform: rotate(180deg);
+    }
+
+
+    /* Style for the placeholder text */
+    .selected-values-display.placeholder .selected-text {
+        color: #6c757d; /* Bootstrap secondary text color */
+        font-style: italic;
+    }
+
+/* --- Dropdown Container Styles --- */
+.select-dropdown-container {
+    display: none; /* Initially hide */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    border: 1px solid #ccc; /* Can use Bootstrap border color */
+    box-sizing: border-box;
+    z-index: 1050; /* Bootstrap dropdown z-index */
+    background-color: #fff;
+    border-top: none;
+    border-radius: 0 0 var(--bs-border-radius) var(--bs-border-radius); /* Match Bootstrap radius */
+    overflow: hidden;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.175); /* Bootstrap dropdown shadow */
+}
+
+    /* --- Search Input Styles --- */
+    .select-dropdown-container .search-input {
+        display: block; /* Hidden by default, shown based on option */
+        width: calc(100% - 1rem); /* Full width minus padding */
+        margin: .5rem; /* Add some margin */
+        padding: .375rem .75rem; /* Match Bootstrap input padding */
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: var(--bs-body-color);
+        background-color: var(--bs-form-control-bg);
+        background-clip: padding-box;
+        border: var(--bs-border-width) solid var(--bs-border-color);
+        border-radius: var(--bs-border-radius);
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+        outline: none;
+    }
+
+        .select-dropdown-container .search-input:focus {
+            border-color: #86b7fe; /* Bootstrap focus color */
+            box-shadow: 0 0 0 .25rem rgba(13,110,253,.25); /* Bootstrap focus shadow */
+        }
+
+
+/* --- Select All Button Styles --- */
+.select-all-options {
+    display: block;
+    padding: .5rem 1rem; /* Bootstrap dropdown item padding */
+    cursor: pointer;
+    background-color: #f8f9fa; /* Bootstrap light background */
+    border-bottom: 1px solid #dee2e6; /* Bootstrap border color */
+    font-weight: bold;
+    text-align: center;
+    outline: none;
+    color: var(--bs-body-color); /* Inherit text color */
+}
+
+    .select-all-options:hover,
+    .select-all-options:focus {
+        background-color: #e9ecef; /* Bootstrap hover background */
+        color: var(--bs-body-color); /* Keep text color on hover */
+    }
+
+
+/* --- Custom Options List (replaces native select) --- */
+.custom-options-list {
+    list-style: none; /* Remove default list bullets */
+    padding: 0; /* Remove default padding */
+    margin: 0; /* Remove default margin */
+    max-height: 200px; /* Set max height for scrolling */
+    overflow-y: auto; /* Add scrollbar if options exceed max height */
+}
+
+    .custom-options-list li {
+        padding: .5rem 1rem; /* Padding for each option */
+        cursor: pointer;
+        background-color: #fff; /* Default background */
+        color: var(--bs-body-color); /* Default text color */
+        display: flex; /* Use flexbox for checkmark alignment */
+        align-items: center;
+        justify-content: space-between; /* Space between text and checkmark */
+        /* Options are focusable via script, but not directly via tab */
+        /* tabindex is set to -1 in JS, managed by script */
+    }
+
+        /* Style for the focused option (when actual focus is on the li) */
+        .custom-options-list li.focused-option {
+            background-color: #e9ecef; /* Match hover background for visual consistency */
+        }
+
+        /* Style for unselected option on hover */
+        .custom-options-list li:not(.selected-option):hover {
+            background-color: #e9ecef; /* Bootstrap hover background */
+        }
+
+
+        /* Style for selected option */
+        .custom-options-list li.selected-option {
+            background-color: #0d6efd; /* Bootstrap primary color */
+            color: white; /* White text for contrast */
+        }
+
+            /* Adjusted hover color for selected option for better contrast */
+            .custom-options-list li.selected-option:hover,
+            .custom-options-list li.selected-option:focus {
+                background-color: #0056b3; /* A slightly darker blue than Bootstrap primary for hover */
+                color: white; /* Keep text white for contrast */
+            }
+
+        /* Style for the checkmark icon */
+        .custom-options-list li .checkmark {
+            display: none; /* Hide checkmark by default */
+            font-size: 1.1em; /* Adjust size */
+            margin-left: 10px; /* Space between text and checkmark */
+        }
+
+        /* Show checkmark for selected options */
+        .custom-options-list li.selected-option .checkmark {
+            display: inline-block; /* Show checkmark when selected */
+        }
+
+
+/* --- Disabled State Styles --- */
+.custom-multi-select.disabled .selected-values-display {
+    background-color: #e9ecef; /* Bootstrap disabled input background */
+    color: #6c757d; /* Bootstrap disabled text color */
+    cursor: not-allowed;
+    pointer-events: none; /* Prevent click events */
+    opacity: 0.65; /* Bootstrap disabled opacity */
+}
+
+    .custom-multi-select.disabled .selected-values-display:focus {
+        border-color: var(--bs-border-color); /* Remove focus border */
+        box-shadow: none; /* Remove focus shadow */
+    }
+
+/* Ensure dropdown is hidden when disabled */
+.custom-multi-select.disabled .select-dropdown-container {
+    display: none !important; /* Force hide */
+}
+
+/* Style for disabled options within the dropdown */
+.custom-options-list li.disabled-option {
+    color: #6c757d; /* Dim text color */
+    cursor: not-allowed;
+    background-color: #f8f9fa; /* Lighter background */
+    opacity: 0.65;
+    pointer-events: none; /* Prevent click events */
+}
+
+/* --- No Results Message --- */
+.no-results-message {
+    padding: .5rem 1rem;
+    text-align: center;
+    color: #6c757d; /* Bootstrap secondary text color */
+    font-style: italic;
+}
+
+
+/* --- Screen Reader Only Class --- */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0); /* Standard way to hide visually but keep available to SR */
+    white-space: nowrap;
+    border: 0;
+}
