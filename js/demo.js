@@ -222,6 +222,14 @@ $(document).ready(function () {// --- Examples of how to use loadSelectOptions a
         // You could do something here based on the selected city
     });
 
+     // --- Event listener for Refresh button ---
+     $('#refreshCountryBtn').on('click', function() {
+        const countrySelectInstance = $('#countrySelect').data('customMultiSelect');
+        if (countrySelectInstance) {
+            countrySelectInstance.refresh();
+        }
+    });
+
    
 }); // End of $(document).ready()
 
