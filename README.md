@@ -4,8 +4,8 @@
   <h1>Custom-JQuery-multiselect</h1>
 <h3 class="demoTitle">Custom-JQuery-multiselect defines a reusable, accessible, and feature-rich custom multi-select dropdown component with bootstrap and JQuery. It is implemented as a jQuery plugin and supports both multi-select and single-select modes with bootstrap 5+.</h3> 
     <h3>See the <a href='https://codecanvas-lab.github.io/Reusable-Custom-JQuery-Multi-Select/demo.html'>demo</a> here.</h3>
-    <p>Single Select</p><img src="https://codecanvas-lab.github.io/Reusable-Custom-JQuery-Multi-Select/singleselect.png" width="50%" height="50%"/>
-    <p>Multi Select</p><img src="https://codecanvas-lab.github.io/Reusable-Custom-JQuery-Multi-Select/multiselect.png" width="50%" height="50%"/>
+    <p>Single Select</p><img src="https://codecanvas-lab.github.io/Reusable-Custom-JQuery-Multi-Select/assets/singleselect.png" width="50%" height="50%"/>
+    <p>Multi Select</p><img src="https://codecanvas-lab.github.io/Reusable-Custom-JQuery-Multi-Select/assets/multiselect.png" width="50%" height="50%"/>
   <h3>Below is an explanation of how the code works, followed by usage instructions and a summary of its key functions.</h3>
 <h2 class="demoTitle"><br />How the Code Works</h2>
 <h4 class="demoTitle">1. Class Definition (CustomMultiSelect):</h4>
