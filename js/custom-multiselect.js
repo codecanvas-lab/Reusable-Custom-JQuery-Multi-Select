@@ -113,12 +113,14 @@
                 // This ensures data attributes take precedence and are correctly typed as booleans
                 const dataSingleSelect = this.$container.data('singleSelect');
                 if (typeof dataSingleSelect !== 'undefined') {
-                    this.options.singleSelect = Boolean(dataSingleSelect);
+                    // Explicitly check for the string "true" or "false"
+                    this.options.singleSelect = (String(dataSingleSelect).toLowerCase() === 'true');
                 }
 
                 const dataEnableSearch = this.$container.data('enableSearch');
                  if (typeof dataEnableSearch !== 'undefined') {
-                    this.options.enableSearch = Boolean(dataEnableSearch);
+                     // Explicitly check for the string "true" or "false"
+                    this.options.enableSearch = (String(dataEnableSearch).toLowerCase() === 'true');
                 }
                 // --- End explicit data attribute handling ---
 
