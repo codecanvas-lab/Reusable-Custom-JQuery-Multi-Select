@@ -1,6 +1,7 @@
 $(document).ready(function () {// --- Examples of how to use loadSelectOptions after initialization ---
     // --- Example of how to use loadSelectOptions after initialization ---
 
+
     // Load static data for countrySelect
     const countries = [
         { value: 'usa', text: 'United States' },
@@ -82,50 +83,25 @@ $(document).ready(function () {// --- Examples of how to use loadSelectOptions a
 
 
     // --- Event listener for the Get Selected Values button ---
-    $('#getSelectedBtn').on('click', function () {
-        const countrySelectInstance = $('#countrySelect').data('customMultiSelect');
-        const colorSelectInstance = $('#colorSelect').data('customMultiSelect');
-        const fruitSelectInstance = $('#fruitSelect').data('customMultiSelect');
-        const citySelectInstance = $('#citySelect').data('customMultiSelect'); // Get single select instance
+    // --- Event listener for the Get Selected Values button ---
+    $('#getSelectedBtn').on('click', function() {
+        console.log("Get Selected Values button clicked.");
+        // Use the new val() getter method
+        const selectedCountries = $('#countrySelect').val();
+        const selectedColors = $('#colorSelect').val();
+        const selectedFruits = $('#fruitSelect').val();
 
-        let outputHtml = '<h2>Selected Values/Texts:</h2>';
 
-        if (countrySelectInstance) {
-            const selectedCountriesValues = countrySelectInstance.getSelectedValues();
-            const selectedCountriesTexts = countrySelectInstance.getSelectedTexts();
-            outputHtml += `<h3>Countries (Multi):</h3><p>Values: ${selectedCountriesValues.join(', ') || 'None'}</p><p>Texts: ${selectedCountriesTexts.join(', ') || 'None'}</p>`;
-        } else {
-            outputHtml += `<h3>Countries (Multi):</h3><p>Instance not found.</p>`;
-        }
+        let outputHtml = '<h2>Selected Values (using .val()):</h2>';
 
-        if (colorSelectInstance) {
-            const selectedColorsValues = colorSelectInstance.getSelectedValues();
-            const selectedColorsTexts = colorSelectInstance.getSelectedTexts();
-            outputHtml += `<h3>Colors (Multi):</h3><p>Values: ${selectedColorsValues.join(', ') || 'None'}</p><p>Texts: ${selectedColorsTexts.join(', ') || 'None'}</p>`;
-        } else {
-            outputHtml += `<h3>Colors (Multi):</h3><p>Instance not found.</p>`;
-        }
-
-        if (fruitSelectInstance) {
-            const selectedFruitsValues = fruitSelectInstance.getSelectedValues();
-            const selectedFruitsTexts = fruitSelectInstance.getSelectedTexts();
-            outputHtml += `<h3>Fruits (Multi):</h3><p>Values: ${selectedFruitsValues.join(', ') || 'None'}</p><p>Texts: ${selectedFruitsTexts.join(', ') || 'None'}</p>`;
-        } else {
-            outputHtml += `<h3>Fruits (Multi):</h3><p>Instance not found.</p>`;
-        }
-
-        // Output for the NEW Single Select example
-        if (citySelectInstance) {
-            const selectedCitiesValues = citySelectInstance.getSelectedValues(); // Will be an array with 0 or 1 element
-            const selectedCitiesTexts = citySelectInstance.getSelectedTexts(); // Will be an array with 0 or 1 element
-            outputHtml += `<h3>City (Single):</h3><p>Value: ${selectedCitiesValues[0] || 'None'}</p><p>Text: ${selectedCitiesTexts[0] || 'None'}</p>`;
-        } else {
-            outputHtml += `<h3>City (Single):</h3><p>Instance not found.</p>`;
-        }
+        outputHtml += `<h3>Countries:</h3><p>Values: ${selectedCountries ? selectedCountries.join(', ') : 'None'}</p>`;
+        outputHtml += `<h3>Colors:</h3><p>Values: ${selectedColors ? selectedColors.join(', ') : 'None'}</p>`;
+        outputHtml += `<h3>Fruits:</h3><p>Values: ${selectedFruits ? selectedFruits.join(', ') : 'None'}</p>`;
 
 
         $('#selectedValuesOutput').html(outputHtml);
     });
+
 
     // --- Event listeners for Enable/Disable buttons ---
     $('#disableCountryBtn').on('click', function () {
@@ -142,33 +118,25 @@ $(document).ready(function () {// --- Examples of how to use loadSelectOptions a
         }
     });
 
-    // --- Event listeners for Set Selected buttons (Multi-Select) ---
-    $('#setCountryValuesBtn').on('click', function () {
-        const countrySelectInstance = $('#countrySelect').data('customMultiSelect');
-        if (countrySelectInstance) {
-            countrySelectInstance.setSelectedValues(['usa', 'canada']);
-        }
+    // --- Event listeners for Set Selected buttons ---
+    $('#setCountryValuesBtn').on('click', function() {
+        // Use the new val() setter method
+        $('#countrySelect').val(['usa', 'canada']);
     });
 
-    $('#clearCountryBtn').on('click', function () {
-        const countrySelectInstance = $('#countrySelect').data('customMultiSelect');
-        if (countrySelectInstance) {
-            countrySelectInstance.setSelectedValues([]);
-        }
+
+    $('#clearCountryBtn').on('click', function() {
+        // Use the new val() setter method with an empty array
+        $('#countrySelect').val([]);
     });
 
     $('#setCityValueBtn').on('click', function () {
-        const citySelectInstance = $('#citySelect').data('customMultiSelect');
-        if (citySelectInstance) {
-            citySelectInstance.setSelectedValues(['delhi']); // Pass as array, but single select logic handles it
-        }
+        $('#citySelect').val(['delhi']); // Set the value directly for the single select
     });
 
     $('#clearCityBtn').on('click', function () {
-        const citySelectInstance = $('#citySelect').data('customMultiSelect');
-        if (citySelectInstance) {
-            citySelectInstance.setSelectedValues([]); // Pass empty array to clear
-        }
+        // Use the new val() setter method with an empty array
+        $('#citySelect').val([]); // Clear the value directly for the single select
     });
 
     $('#showCountrySelectBtn').on('click', function () {
