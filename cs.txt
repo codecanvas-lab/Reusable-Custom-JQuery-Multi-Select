@@ -749,6 +749,15 @@
                 this._toggleOptionSelection($clickedItem);
                 this.updateDisplay();
                 this._triggerChangeEvent();
+
+                // --- FIX: Update Select All button text based on current selection ---
+                const $optionItems = this._getSelectAllTargetOptions(); // Gets all enabled options
+                const totalOptions = $optionItems.length;
+                const selectedOptionsCount = $optionItems.filter('.selected-option').length;
+                const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions; // Ensure totalOptions is not zero
+                this._updateSelectAllButton(allSelected);
+                // --- End FIX ---
+
                 // Keep focus on the clicked item in multi-select
                 $clickedItem.focus();
                 this._updateActiveDescendant(null); // Clear active descendant as focus is on the item
@@ -1290,10 +1299,8 @@
                  if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
                       return $(); // Return empty jQuery object if list is missing
                  }
-                 // Operate only on visible, enabled options if search is active, otherwise all enabled options
-                 return (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.val() !== '')
-                     ? this.$customOptionsList.find('li:visible:not(.disabled-option)')
-                     : this.$customOptionsList.find('li:not(.disabled-option)');
+                 // Always operate on all enabled options, regardless of search filter
+                 return this.$customOptionsList.find('li:not(.disabled-option)');
             }
 
             /**
@@ -1303,8 +1310,9 @@
              * @param {boolean} allSelected - True if all relevant options are selected.
              */
             _updateSelectAllButton(allSelected) {
+                 console.log(`[${this.containerId}] _updateSelectAllButton called. All selected: ${allSelected}`); // Added log
                  if (this.$selectAllDiv && this.$selectAllDiv.length) {
-                     this.$selectAllDiv.text(!allSelected ? 'Deselect All' : 'Select All');
+                     this.$selectAllDiv.text(allSelected ? 'Deselect All' : 'Select All'); // Corrected text logic
                      if (allSelected) {
                          this.$selectAllDiv.addClass("selected");
                      } else {
@@ -1331,19 +1339,26 @@
                 }
 
                 const selectedOptionsCount = $optionItems.filter('.selected-option').length;
-                const allSelected = selectedOptionsCount === totalOptions;
+                const allCurrentlySelected = selectedOptionsCount === totalOptions;
+
+                // Determine the new selection state for the options
+                const selectAll = !allCurrentlySelected; // If all are currently selected, we want to deselect all, otherwise select all
 
                 // Batch DOM updates for performance
                 $optionItems.each(function() {
                     const $item = $(this);
-                    if (!allSelected) {
+                    if (selectAll) {
                         $item.addClass('selected-option').attr('aria-selected', 'true');
                     } else {
                         $item.removeClass('selected-option').attr('aria-selected', 'false');
                     }
                 });
 
-                this._updateSelectAllButton(allSelected); // Update the Select All button text and class
+                // --- FIX: Update Select All button text based on the *new* state ---
+                const newSelectedOptionsCount = $optionItems.filter('.selected-option').length;
+                const allSelectedAfterToggle = totalOptions > 0 && newSelectedOptionsCount === totalOptions;
+                this._updateSelectAllButton(allSelectedAfterToggle);
+                // --- End FIX ---
 
                 this.updateDisplay(); // Update the main display text
                 this._triggerChangeEvent();
@@ -1532,6 +1547,15 @@
 
                 this.updateDisplay();
                 this._triggerChangeEvent();
+
+                // --- FIX: Update Select All button text based on current selection ---
+                const $optionItems = this._getSelectAllTargetOptions();
+                const totalOptions = $optionItems.length;
+                const selectedOptionsCount = $optionItems.filter('.selected-option').length;
+                const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions; // Ensure totalOptions is not zero
+                this._updateSelectAllButton(allSelected);
+                // --- End FIX ---
+
                 console.log(`[${this.containerId}] setSelectedValues complete.`);
            }
 
@@ -1590,6 +1614,15 @@
 
                 this.updateDisplay();
                 this._triggerChangeEvent();
+
+                // --- FIX: Update Select All button text based on current selection ---
+                const $optionItems = this._getSelectAllTargetOptions();
+                const totalOptions = $optionItems.length;
+                const selectedOptionsCount = $optionItems.filter('.selected-option').length;
+                const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions; // Ensure totalOptions is not zero
+                this._updateSelectAllButton(allSelected);
+                // --- End FIX ---
+
                 console.log(`[${this.containerId}] setSelectedTexts complete.`);
            }
 
@@ -1705,7 +1738,9 @@
                    this.$selectAllDiv.attr('aria-disabled', 'true').attr('tabindex', '-1').addClass('disabled-option');
                }
                 if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('li').addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
+                   this.$customOptionsList.find('li').each(function() {
+                        $(this).addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
+                   });
                 }
                 if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
                     this.$searchInput.prop('disabled', true).hide();
