@@ -265,69 +265,84 @@
            }
 
            /**
-            * Sets up initial WAI-ARIA attributes for accessibility.
-            * Adjusts aria-multiselectable based on singleSelect option.
+            * Sets up accessibility attributes for the listbox element.
             * @private
             */
-           _setupAccessibility() {
-               // Associate the SR-only label with the LISTBOX (UL) using aria-labelledby
+           _setupListboxAccessibility() {
                if (this.$labelElement && this.$labelElement.length && this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$labelElement.text(this.placeholderText || 'Multi-select options'); // Set accessible name for the label
+                   this.$labelElement.text(this.placeholderText || 'Multi-select options');
                    this.$customOptionsList.attr('aria-labelledby', this.$labelElement.attr('id'));
+                   this.$customOptionsList.attr('role', 'listbox');
+                   this.$customOptionsList.attr('aria-multiselectable', this.options.singleSelect === true ? 'false' : 'true');
+                   this.$customOptionsList.attr('aria-activedescendant', '');
                } else {
-                    console.warn(`[${this.containerId}] Cannot set aria-labelledby on listbox: SR-only label or listbox element missing.`);
+                    console.warn(`[${this.containerId}] Cannot set accessibility attributes on listbox: SR-only label or listbox element missing.`);
                }
+           }
 
-                // The UL acts as the listbox
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                    this.$customOptionsList.attr('role', 'listbox');
-                    // Set aria-multiselectable based on the singleSelect option (use boolean value)
-                    this.$customOptionsList.attr('aria-multiselectable', this.options.singleSelect === true ? 'false' : 'true'); // Explicit boolean check
-                    this.$customOptionsList.attr('aria-activedescendant', ''); // Initially empty
-                }
-
-
-               // The display button acts as the button that opens the listbox
+           /**
+            * Sets up accessibility attributes for the display button.
+            * @private
+            */
+           _setupDisplayButtonAccessibility() {
                if (this.$displayButton && this.$displayButton.length && this.$customOptionsList && this.$customOptionsList.length) {
                    this.$displayButton.attr('aria-haspopup', 'listbox');
-                   this.$displayButton.attr('aria-expanded', 'false'); // Initially collapsed
-                   this.$displayButton.attr('aria-controls', this.$customOptionsList.attr('id')); // Link to the UL
-                   // Link visible label AND display button ID for composite accessible name
+                   this.$displayButton.attr('aria-expanded', 'false');
+                   this.$displayButton.attr('aria-controls', this.$customOptionsList.attr('id'));
+
                    if (this.$labelElement && this.$labelElement.length && this.$displayButton.attr('id')) {
                         this.$displayButton.attr('aria-labelledby', `${this.$labelElement.attr('id')} ${this.$displayButton.attr('id')}`);
                    } else if (this.$displayButton.attr('id')) {
-                        // Fallback if SR label is missing, use only display button ID
                         this.$displayButton.attr('aria-labelledby', this.$displayButton.attr('id'));
                    } else {
-                        // Fallback if no IDs are available, use aria-label
                         this.$displayButton.attr('aria-label', this.placeholderText || 'Select options');
                    }
                } else {
-                    console.warn(`[${this.containerId}] Cannot set ARIA attributes on display button: Button, listbox, or SR label missing.`);
+                    console.warn(`[${this.containerId}] Cannot set accessibility attributes on display button: Button, listbox, or SR label missing.`);
                }
+           }
 
-
-               // Select All button accessibility (only relevant for multi-select)
+           /**
+            * Sets up accessibility attributes for the Select All button.
+            * @private
+            */
+           _setupSelectAllAccessibility() {
                if (this.$selectAllDiv && this.$selectAllDiv.length) {
-                    // Disable tab and mark as disabled if singleSelect is true
-                    this.$selectAllDiv.attr('tabindex', this.options.singleSelect === true ? '-1' : '0'); // Explicit boolean check
-                    this.$selectAllDiv.attr('aria-disabled', this.options.singleSelect === true ? 'true' : 'false'); // Explicit boolean check
+                    this.$selectAllDiv.attr('tabindex', this.options.singleSelect === true ? '-1' : '0');
+                    this.$selectAllDiv.attr('aria-disabled', this.options.singleSelect === true ? 'true' : 'false');
                     this.$selectAllDiv.attr('role', 'button');
                     this.$selectAllDiv.attr('aria-label', 'Select or Deselect All Options');
                } else {
                     console.warn(`[${this.containerId}] Select All element missing.`);
                }
+           }
 
-
-                // Search Input Accessibility
+           /**
+            * Sets up accessibility attributes for the search input.
+            * @private
+            */
+           _setupSearchInputAccessibility() {
                 if (this.$searchInput && this.$searchInput.length && this.$customOptionsList && this.$customOptionsList.length) {
                     this.$searchInput.attr('role', 'searchbox');
                     this.$searchInput.attr('aria-label', 'Search options');
                     this.$searchInput.attr('autocomplete', 'off');
-                    this.$searchInput.attr('aria-controls', this.$customOptionsList.attr('id')); // Link to the listbox
+                    this.$searchInput.attr('aria-controls', this.$customOptionsList.attr('id'));
                 } else {
                     console.warn(`[${this.containerId}] Search input or listbox element missing for search accessibility.`);
                 }
+           }
+
+
+           /**
+            * Sets up initial WAI-ARIA attributes for accessibility.
+            * Adjusts aria-multiselectable based on singleSelect option.
+            * @private
+            */
+           _setupAccessibility() {
+               this._setupListboxAccessibility();
+               this._setupDisplayButtonAccessibility();
+               this._setupSelectAllAccessibility();
+               this._setupSearchInputAccessibility();
            }
 
            /**
@@ -903,7 +918,7 @@
                     !(this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.is(':focus'))) { // Explicit boolean check
                      this._updateActiveDescendant(null);
                 }
-            }
+           }
 
 
            /**
@@ -1148,43 +1163,52 @@
            }
 
            /**
-            * Manages focus after the dropdown is shown.
-            * Extracted from showSelect.
+            * Finds the element that should receive focus when the dropdown is shown.
+            * Extracted from _manageFocusAfterShow.
             * @private
+            * @returns {jQuery|null} The jQuery object of the element to focus, or null if none is found.
             */
-           _manageFocusAfterShow() {
+           _findInitialFocusElement() {
                 // If search is enabled, focus search
                 if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) {
-                    this.$searchInput.focus();
+                    return this.$searchInput;
                 }
                 // If single select, focus the selected option or first enabled option
                 else if (this.options.singleSelect === true && this.$customOptionsList && this.$customOptionsList.length) {
                      const $selectedOption = this.$customOptionsList.find('li.selected-option:not(.disabled-option)').first();
                      const $firstEnabledOption = this.$customOptionsList.find('li:not(.disabled-option)').first();
-                     let $optionToFocus = null;
 
                      if ($selectedOption.length) {
-                         $optionToFocus = $selectedOption;
+                         return $selectedOption;
                      } else if ($firstEnabledOption.length) {
-                         $optionToFocus = $firstEnabledOption;
-                     }
-
-                     if ($optionToFocus && $optionToFocus.length) {
-                         $optionToFocus.attr('tabindex', '0');
-                         $optionToFocus.focus();
+                         return $firstEnabledOption;
                      }
                 }
                 // If multi-select and no search, focus Select All
                 else if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') {
-                   this.$selectAllDiv.focus();
+                   return this.$selectAllDiv;
                 }
                 // Fallback: focus the first visible enabled option in the list
                 else if (this.$customOptionsList && this.$customOptionsList.length) {
                     const $firstOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
                     if ($firstOption.length) {
-                        $firstOption.attr('tabindex', '0');
-                        $firstOption.focus();
+                        return $firstOption;
                     }
+                }
+                return null; // Return null if no element to focus is found
+           }
+
+           /**
+            * Manages focus after the dropdown is shown.
+            * Extracted from showSelect.
+            * @private
+            */
+           _manageFocusAfterShow() {
+                const $elementToFocus = this._findInitialFocusElement();
+
+                if ($elementToFocus && $elementToFocus.length) {
+                    $elementToFocus.attr('tabindex', '0'); // Ensure it's focusable
+                    $elementToFocus.focus();
                 }
            }
 
@@ -1372,7 +1396,7 @@
             * @public
             */
            disable() {
-               if (this.isDisabled) {
+               if (!this.isDisabled) {
                    return;
                }
                this.isDisabled = true;
@@ -1670,40 +1694,74 @@
            }
 
            /**
+            * Applies the disabled state to internal elements when showing the component.
+            * Extracted from showComponent.
+            * @private
+            */
+           _applyDisabledStateOnShow() {
+               this.$container.addClass('disabled');
+               if (this.$displayButton && this.$displayButton.length) {
+                   this.$displayButton.prop('disabled', true).attr('tabindex', '-1').addClass('disabled-option');
+               }
+               if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) {
+                   this.$selectAllDiv.attr('aria-disabled', 'true').attr('tabindex', '-1').addClass('disabled-option');
+               }
+                if (this.$customOptionsList && this.$customOptionsList.length) {
+                   this.$customOptionsList.find('li').addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
+                }
+                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
+                    this.$searchInput.prop('disabled', true).hide();
+                }
+           }
+
+           /**
+            * Applies the enabled state to internal elements when showing the component.
+            * Extracted from showComponent.
+            * @private
+            */
+           _applyEnabledStateOnShow() {
+               if (this.$displayButton && this.$displayButton.length) {
+                   this.$displayButton.prop('disabled', false).attr('tabindex', '0').removeClass('disabled-option');
+               }
+               if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) {
+                   this.$selectAllDiv.attr('aria-disabled', 'false').attr('tabindex', '0').show();
+               }
+               if (this.$customOptionsList && this.$customOptionsList.length) {
+                   this.$customOptionsList.find('li').removeClass('disabled-option').attr('aria-disabled', 'false').attr('tabindex', '-1');
+               }
+               if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
+                   this.$searchInput.prop('disabled', false).show();
+               }
+           }
+
+
+           /**
             * Shows the entire component.
             * @public
             */
            showComponent() {
                 console.log(`[${this.containerId}] showComponent called.`);
-                if (this.$container && this.$container.length) {
-                    this.$container.removeClass('hidden-component');
-                    this._bindEvents();
-                    if (this.$displayButton && this.$displayButton.length) {
-                        this.$displayButton.attr('tabindex', '0');
-                    }
-                    if (this.isDisabled) {
-                        this.$container.addClass('disabled');
-                        if (this.$displayButton) this.$displayButton.prop('disabled', true).attr('tabindex', '-1');
-                        if (this.options.singleSelect === false && this.$selectAllDiv) this.$selectAllDiv.attr('aria-disabled', 'true').attr('tabindex', '-1');
-                        if (this.$customOptionsList) this.$customOptionsList.find('li').addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
-                        if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
-                            this.$searchInput.prop('disabled', true).hide();
-                        }
-                    } else {
-                        if (this.$displayButton) this.$displayButton.prop('disabled', false).attr('tabindex', '0');
-                        if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) {
-                            this.$selectAllDiv.attr('aria-disabled', 'false').attr('tabindex', '0').show();
-                        }
-                        if (this.$customOptionsList) this.$customOptionsList.find('li').removeClass('disabled-option').attr('aria-disabled', 'false').attr('tabindex', '-1');
-                        if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
-                            this.$searchInput.prop('disabled', false).show();
-                        }
-                    }
-
-                    console.log(`[${this.containerId}] Component shown.`);
-                } else {
-                    console.warn(`[${this.containerId}] showComponent: Container element missing.`);
+                if (this.isDisabled) {
+                    return;
                 }
+                if (!this.$container || this.$container.length === 0) {
+                     console.warn(`[${this.containerId}] showComponent: Container element missing.`);
+                     return;
+                }
+
+                this.$container.removeClass('hidden-component');
+                this._bindEvents();
+                if (this.$displayButton && this.$displayButton.length) {
+                    this.$displayButton.attr('tabindex', '0');
+                }
+
+                if (this.isDisabled) {
+                    this._applyDisabledStateOnShow();
+                } else {
+                    this._applyEnabledStateOnShow();
+                }
+
+                console.log(`[${this.containerId}] Component shown.`);
            }
 
            /**
