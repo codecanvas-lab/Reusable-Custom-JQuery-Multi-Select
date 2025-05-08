@@ -30,10 +30,8 @@
                         // Optional: Scroll the item into view if needed
                         // $optionToHighlight[0].scrollIntoView({ block: 'nearest' });
                     }
-                } else {
-                     if (this.$customOptionsList && this.$customOptionsList.length) {
+                } else if (this.$customOptionsList && this.$customOptionsList.length) { // Refactored: Combined else and nested if
                        this.$customOptionsList.attr('aria-activedescendant', '');
-                     }
                 }
             }
 
@@ -1012,8 +1010,8 @@
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on Select All
                 }
                 // If no element above, keep focus on the last item (or loop back if desired, but keeping focus is simpler)
-                else {
-                     if ($currentItem && $currentItem.length) $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
+                else if ($currentItem && $currentItem.length) { // Refactored: Combined else and nested if
+                    $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
                 }
            }
 
@@ -1035,8 +1033,8 @@
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on the search input
                 }
                 // If no element above, keep focus on the first item
-                else {
-                    if ($currentItem && $currentItem.length) $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
+                else if ($currentItem && $currentItem.length) { // Refactored: Combined else and nested if
+                    $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
                 }
            }
 
@@ -1396,7 +1394,7 @@
             * @public
             */
            disable() {
-               if (!this.isDisabled) {
+               if (this.isDisabled) { // Corrected condition: return if already disabled
                    return;
                }
                this.isDisabled = true;
@@ -1932,7 +1930,7 @@
                     }
 
                    if (typeof instance[methodName] === 'function' && !methodName.startsWith('_')) {
-                        instance[methodName].apply(instance, methodArgs);
+                        instance[methodName](...methodArgs); // Refactored: Using spread operator
                    } else {
                        console.error(`Plugin: Method "${methodName}" does not exist or is private on CustomMultiSelect instance for element:`, this);
                    }
