@@ -785,70 +785,50 @@
             * @private
             * @param {KeyboardEvent} event - The keydown event object.
             */
-           _handleOptionKeydown(event) {
-                if (this.isDisabled) return;
-                const $currentItem = $(event.currentTarget);
-                if ($currentItem.hasClass('disabled-option')) {
-                    return;
+        _handleOptionKeydown(event) {
+            if (this.isDisabled) return;
+
+            const $currentItem = $(event.currentTarget);
+            if ($currentItem.hasClass('disabled-option')) return;
+
+            if (!this.$customOptionsList?.length) {
+                console.warn(`[${this.containerId}] List item keydown handler: Options list missing.`);
+                return;
+            }
+
+            const $optionItems = this.$customOptionsList.find('li:visible:not(.disabled-option)');
+            if (!$optionItems?.length) return;
+
+            const currentIndex = $optionItems.index($currentItem);
+
+            const keyActions = {
+                ArrowDown: () => {
+                    if (currentIndex < $optionItems.length - 1) {
+                        this._moveFocus($currentItem, $optionItems.eq(currentIndex + 1));
+                    } else {
+                        this._handleNavigationFromLastOption($currentItem);
+                    }
+                },
+                ArrowUp: () => {
+                    if (currentIndex > 0) {
+                        this._moveFocus($currentItem, $optionItems.eq(currentIndex - 1));
+                    } else {
+                        this._handleNavigationFromFirstOption($currentItem);
+                    }
+                },
+                ' ': () => $currentItem.trigger('click'),
+                Enter: () => $currentItem.trigger('click'),
+                Escape: () => {
+                    this.hideSelect();
+                    this.$displayButton?.focus();
                 }
+            };
 
-                if (!this.$customOptionsList?.length) { // Use optional chaining
-                     console.warn(`[${this.containerId}] List item keydown handler: Options list missing.`);
-                     return;
-                }
-
-                const $optionItems = this.$customOptionsList.find('li:visible:not(.disabled-option)'); // Only consider *visible* and *enabled* options
-
-                if (!$optionItems?.length) { // Use optional chaining
-                    return; // Exit if no options are found after filtering
-                }
-
-                const currentIndex = $optionItems.index($currentItem);
-
-                switch (event.key) {
-                    case 'ArrowDown':
-                        event.preventDefault();
-                        // Add check to ensure there is a next index
-                        if (currentIndex < $optionItems.length - 1) {
-                            const $nextItem = $optionItems.eq(currentIndex + 1);
-                            if ($nextItem?.length) { // Use optional chaining
-                                this._moveFocus($currentItem, $nextItem); // Use moveFocus helper
-                                 this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
-                            }
-                        } else {
-                             this._handleNavigationFromLastOption($currentItem); // Use helper
-                        }
-                        break;
-                    case 'ArrowUp':
-                        event.preventDefault();
-                        // Add check to ensure there is a previous index or an element above
-                        if (currentIndex > 0) {
-                            // Move focus to the previous visible enabled option
-                            const $prevItem = $optionItems.eq(currentIndex - 1);
-                            if ($prevItem?.length) { // Use optional chaining
-                                 this._moveFocus($currentItem, $prevItem); // Use helper
-                                 this._updateActiveDescendant(null); // Clear active descendant as focus is on the item
-                            }
-                        } else {
-                            // If at the first item, move focus to Select All or search input
-                            this._handleNavigationFromFirstOption($currentItem); // Use helper
-                        }
-                        break;
-                    case ' ':
-                    case 'Enter':
-                        event.preventDefault();
-                        // Trigger click to toggle selection (multi) or select and close (single)
-                        $currentItem.trigger('click');
-                        break;
-                    case 'Escape':
-                        event.preventDefault();
-                        this.hideSelect(); // hideSelect has internal checks now
-                        this.$displayButton?.focus(); // Use optional chaining
-                        break;
-                }
-           }
-
-            /**
+            if (keyActions[event.key]) {
+                event.preventDefault();
+                keyActions[event.key]();
+            }
+        }        /**
              * Handles mouseover event on a list item. Updates aria-activedescendant for screen readers.
              * @private
              * @param {MouseEvent} event - The mouseover event object.
@@ -1134,55 +1114,42 @@
             * Shows the dropdown list.
             * @public
             */
-           showSelect() {
-                if (this.isDisabled) {
-                    return;
-                }
-                if (!this.$dropdownContainer?.length || !this.$displayButton?.length) { // Use optional chaining
-                     console.warn(`[${this.containerId}] showSelect: Required elements missing.`);
-                     return;
-                }
+        showSelect() {
+            if (this.isDisabled || !this.$dropdownContainer?.length || !this.$displayButton?.length) {
+                console.warn(`[${this.containerId}] showSelect: Required elements missing or component is disabled.`);
+                return;
+            }
 
-                this.$displayButton.attr('aria-expanded', 'true');
-                this.$dropdownContainer.show();
+            this.$displayButton.attr('aria-expanded', 'true');
+            this.$dropdownContainer.show();
 
-                // Focus management after showing the dropdown
-                // If search is enabled, focus search (use boolean value)
-                if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Use optional chaining
-                    this.$searchInput.focus();
-                }
-                // If single select, focus the selected option or first enabled option (use boolean value)
-                else if (this.options.singleSelect === true && this.$customOptionsList?.length) { // Use optional chaining
-                     const $selectedOption = this.$customOptionsList.find('li.selected-option:not(.disabled-option)').first();
-                     const $firstEnabledOption = this.$customOptionsList.find('li:not(.disabled-option)').first();
-                     let $optionToFocus = null;
+            const focusTarget = this._determineFocusTarget();
+            if (focusTarget?.length) {
+                focusTarget.attr('tabindex', '0').focus();
+            }
+        }
 
-                     if ($selectedOption?.length) { // Use optional chaining
-                         $optionToFocus = $selectedOption;
-                     } else if ($firstEnabledOption?.length) { // Use optional chaining
-                         $optionToFocus = $firstEnabledOption;
-                     }
+        /**
+         * Determines the appropriate element to focus when the dropdown is shown.
+         * @private
+         * @returns {jQuery|null} The jQuery object of the element to focus, or null if none.
+         */
+        _determineFocusTarget() {
+            if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) {
+                return this.$searchInput;
+            }
 
-                     if ($optionToFocus?.length) { // Use optional chaining
-                         $optionToFocus.attr('tabindex', '0');
-                         $optionToFocus.focus();
-                     }
-                }
-                // If multi-select and no search, focus Select All (use boolean value)
-                else if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Use optional chaining
-                   this.$selectAllDiv.focus();
-                }
-                // Fallback: focus the first visible enabled option in the list
-                else if (this.$customOptionsList?.length) { // Use optional chaining
-                    const $firstOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
-                    if ($firstOption?.length) { // Use optional chaining
-                        $firstOption.attr('tabindex', '0');
-                        $firstOption.focus();
-                    }
-                }
-           }
+            if (this.options.singleSelect === true && this.$customOptionsList?.length) {
+                const $selectedOption = this.$customOptionsList.find('li.selected-option:not(.disabled-option)').first();
+                return $selectedOption.length ? $selectedOption : this.$customOptionsList.find('li:not(.disabled-option)').first();
+            }
 
-           /**
+            if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.attr('aria-disabled') !== 'true') {
+                return this.$selectAllDiv;
+            }
+
+            return this.$customOptionsList?.find('li:visible:not(.disabled-option)').first() || null;
+        }        /**
             * Hides the dropdown list.
             * @public
             */
