@@ -100,7 +100,8 @@
                return {
                    enableSearch: true, // Whether to show and enable the search input.
                    maxDisplaySize: 0, // Maximum number of selected items to display before truncating (0 means no limit).
-                   singleSelect: false // Whether the component should behave as a single-select dropdown.
+                   singleSelect: false, // Whether the component should behave as a single-select dropdown.
+                   allowUnselect: false // Whether to allow unselecting options in single-select mode.
                };
            }
 
@@ -129,6 +130,12 @@
                 if (typeof dataEnableSearch !== 'undefined') {
                     // Explicitly check for the string "true" or "false"
                    this.options.enableSearch = (String(dataEnableSearch).toLowerCase() === 'true');
+               }
+
+               const dataAllowUnselect = this.$container.data('allowUnselect');
+                if (typeof dataAllowUnselect !== 'undefined') {
+                    // Explicitly check for the string "true" or "false"
+                   this.options.allowUnselect = (String(dataAllowUnselect).toLowerCase() === 'true');
                }
                // --- End explicit data attribute handling ---
 
@@ -728,7 +735,7 @@
            _handleSingleSelectOptionClick($clickedItem) {
 
                 // Check if the clicked item is already selected
-                if ($clickedItem.hasClass('selected-option')) {
+                if (this.options.allowUnselect == true && $clickedItem.hasClass('selected-option')) {
                     // If already selected, deselect it
                     $clickedItem.removeClass('selected-option').attr('aria-selected', 'false');                 
                 } else {
