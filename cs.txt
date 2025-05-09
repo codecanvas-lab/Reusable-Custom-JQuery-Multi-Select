@@ -870,7 +870,7 @@
                 if (this.isDisabled) return;
                 // Check if the click occurred outside this specific container AND the dropdown is currently visible
                 if (this.$container?.length && this.$dropdownContainer?.length && // Use optional chaining
-                    !$.contains(this.$container[0], event.target) && this.$dropdownContainer.is(':visible')) {
+                    !$.contains(this.$container[0], event.target) && !$.contains(this.$dropdownContainer[0], event.target) && this.$dropdownContainer.is(':visible')) {
                     this.hideSelect();
                 }
            }
@@ -884,6 +884,7 @@
            _handleDocumentFocusIn(event) {
                 if (this.isDisabled) return;
                 const containerElement = this.$container?.[0]; // Use optional chaining
+                const dropdownElement = this.$dropdownContainer && this.$dropdownContainer.length ? this.$dropdownContainer[0] : null;
 
                 if (containerElement && $.contains(document.documentElement, containerElement)) {
                      if (!$.contains(containerElement, event.target)) {
@@ -893,10 +894,12 @@
                                 const $containerInTimeout = $(`#${this.containerId}`); // Use this.containerId
                                 const instanceInTimeout = $containerInTimeout?.data('customMultiSelect'); // Use optional chaining
                                 const elementInTimeout = $containerInTimeout?.[0]; // Use optional chaining
+                                const dropdownInTimeout = instanceInTimeout && instanceInTimeout.$dropdownContainer && instanceInTimeout.$dropdownContainer.length ? instanceInTimeout.$dropdownContainer[0] : null;
 
                                 // Check if the instance, element, and dropdown are still valid and visible,
                                 // and if focus is still outside the container and the component is not disabled.
-                                if (instanceInTimeout && elementInTimeout && $.contains(document.documentElement, elementInTimeout) && instanceInTimeout.$dropdownContainer?.length && instanceInTimeout.$dropdownContainer.is(':visible') && !$.contains(instanceInTimeout.$container[0], document.activeElement) && !$.contains(instanceInTimeout.$dropdownContainer[0], document.activeElement) && !instanceInTimeout.isDisabled) {
+                                //if (instanceInTimeout && elementInTimeout && $.contains(document.documentElement, elementInTimeout) && instanceInTimeout.$dropdownContainer?.length && instanceInTimeout.$dropdownContainer.is(':visible') && !$.contains(instanceInTimeout.$container[0], document.activeElement) && !$.contains(instanceInTimeout.$dropdownContainer[0], document.activeElement) && !instanceInTimeout.isDisabled) {
+                                    if (instanceInTimeout && elementInTimeout && dropdownInTimeout && $.contains(document.documentElement, elementInTimeout) && $.contains(document.documentElement, dropdownInTimeout) && instanceInTimeout.$dropdownContainer.is(':visible') && !$.contains(instanceInTimeout.$container[0], document.activeElement) && !$.contains(instanceInTimeout.$dropdownContainer[0], document.activeElement) && !instanceInTimeout.isDisabled) {
                                     instanceInTimeout.hideSelect(); // hideSelect has internal checks now
                                 } else {
                                     console.log(`[${this.containerId}] Focus moved back inside during delay, component is disabled, or instance/element is no longer valid.`);
@@ -1120,6 +1123,26 @@
                 return;
             }
 
+            
+                // --- Positioning and Appending for DataTables compatibility ---
+                const buttonPosition = this.$displayButton.offset(); // Get position relative to the document
+                const buttonHeight = this.$displayButton.outerHeight();
+                const buttonWidth = this.$displayButton.outerWidth();
+
+                // Set dropdown position and width
+                this.$dropdownContainer.css({
+                    position: 'absolute', // Ensure absolute positioning
+                    top: buttonPosition.top + buttonHeight, // Position below the button
+                    left: buttonPosition.left, // Align left edge with the button
+                    width: buttonWidth // Match the button's width
+                });
+
+                // Append the dropdown to the body to escape overflow: hidden containers
+                $('body').append(this.$dropdownContainer);
+                console.log(`[${this.containerId}] Appended dropdown to body.`);
+                // --- End Positioning and Appending ---
+
+
             this.$displayButton.attr('aria-expanded', 'true');
             this.$dropdownContainer.show();
 
@@ -1176,6 +1199,16 @@
                 // Clear live region text
                 this.$liveRegion?.text(''); // Use optional chaining
 
+                // --- Append the dropdown back to its original parent ---
+                if (this._originalDropdownParent && this._originalDropdownParent.length && $.contains(document.documentElement, this._originalDropdownParent[0])) {
+                    this._originalDropdownParent.append(this.$dropdownContainer);
+                    console.log(`[${this.containerId}] Appended dropdown back to original parent.`);
+                } else {
+                    console.warn(`[${this.containerId}] Original dropdown parent is no longer valid or in the DOM. Removing dropdown from body.`);
+                    // If the original parent is gone (e.g., row removed), remove the dropdown entirely
+                    this.$dropdownContainer.remove();
+                }
+                // --- End Append Back ---
 
                 // Return focus to the display button if focus is still within the container
                 if (this.$container?.length && this.$container.find(':focus').length > 0) { // Use optional chaining
