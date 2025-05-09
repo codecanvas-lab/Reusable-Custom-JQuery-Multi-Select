@@ -197,8 +197,7 @@
                this._moveFocus = this._moveFocus.bind(this);
                this._handleNavigationFromLastOption = this._handleNavigationFromLastOption.bind(this);
                this._handleNavigationFromFirstOption = this._handleNavigationFromFirstOption.bind(this);
-               this._toggleOptionSelection = this._toggleOptionSelection.bind(this);
-               this._areArraysEqual = this._areArraysEqual.bind(this);
+               this._toggleOptionSelection = this._toggleOptionSelection.bind(this);              
                this._triggerChangeEvent = this._triggerChangeEvent.bind(this);
                this._unbindEvents = this._unbindEvents.bind(this);
                this.showComponent = this.showComponent.bind(this); // Bind new method
@@ -246,7 +245,9 @@
            _ensureUniqueIds() {
                 // Ensure the container element has an ID
                 if (!this.$container.attr('id')) {
-                    const generatedId = `customMultiSelect_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                    const array = new Uint32Array(1);
+                    window.crypto.getRandomValues(array);
+                    const generatedId = `customMultiSelect_${Date.now()}_${array[0]}`;
                     this.$container.attr('id', generatedId);
                 }
                 /** @member {string} containerId - The unique ID of the container element. */
@@ -378,7 +379,7 @@
                     const $item = $(this);
                     initialHtmlOptions.push({
                         value: $item.attr('data-value'),
-                        text: $item.text().replace(/\s*笨能s*$/, '').trim(), // Clean up text
+                        text: $item.text().trim(), // Clean up text
                         selected: $item.hasClass('selected-option')
                     });
                 });
@@ -891,8 +892,7 @@
             */
            _handleDocumentFocusIn(event) {
                 if (this.isDisabled) return;
-                const containerElement = this.$container?.[0]; // Use optional chaining
-                const dropdownElement = this.$dropdownContainer && this.$dropdownContainer.length ? this.$dropdownContainer[0] : null;
+                const containerElement = this.$container?.[0]; // Use optional chaining                
 
                 if (containerElement && $.contains(document.documentElement, containerElement)) {
                      if (!$.contains(containerElement, event.target)) {
@@ -1007,32 +1007,6 @@
                 }
            }
 
-
-           /**
-            * Helper method to check if two arrays are equal (order-independent).
-            * Used to determine if the selection state has actually changed.
-            * @private
-            * @param {Array<any>} arr1 - The first array.
-            * @param {Array<any>} arr2 - The second array.
-            * @returns {boolean} True if the arrays contain the same elements, regardless of order.
-            */
-           _areArraysEqual(arr1, arr2) {
-               if (!Array.isArray(arr1) || !Array.isArray(arr2)) {
-                   return false;
-               }
-               if (arr1.length !== arr2.length) {
-                   return false;
-               }
-               const sortedArr1 = [...arr1].sort();
-               const sortedArr2 = [...arr2].sort();
-               for (let i = 0; i < sortedArr1.length; i++) {
-                   if (sortedArr1[i] !== sortedArr2[i]) {
-                       return false;
-                   }
-               }
-               return true;
-           }
-
            /**
             * Triggers a custom 'change.customMultiSelect' event on the container element
             * if the selection state has actually changed since the last update.
@@ -1096,7 +1070,7 @@
                          // Find by text (case-insensitive, trimmed)
                          $itemToSelect = self.$customOptionsList.find('li').filter(function() {
                              const $li = $(this);
-                             const itemText = $li.data('original-text') || $li.text().replace(/\s*笨能s*$/, '').trim();
+                             const itemText = $li.data('original-text') || $li.text().trim();
                              if (!$li.data('original-text')) {
                                   $li.data('original-text', itemText);
                              }
@@ -1405,7 +1379,7 @@
                      if (cachedText !== undefined) {
                          return cachedText;
                      } else {
-                         const text = $(this).text().replace(/\s*笨能s*$/, '').trim();
+                         const text = $(this).text().trim();
                          $(this).data('original-text', text); // Cache the original text
                          return text;
                      }
