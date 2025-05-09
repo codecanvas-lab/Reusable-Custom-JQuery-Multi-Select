@@ -15,23 +15,17 @@
              */
             _updateActiveDescendant($optionToHighlight) {
                 // Remove focused-option class from previously highlighted item
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('.focused-option').removeClass('focused-option');
-                }
+                this.$customOptionsList?.find('.focused-option').removeClass('focused-option');
 
-                if ($optionToHighlight && $optionToHighlight.length) {
+                if ($optionToHighlight?.length) { // Use optional chaining and length check
                     // Ensure the option has an ID for aria-activedescendant
                     if (!$optionToHighlight.attr('id')) {
                         $optionToHighlight.attr('id', `${this.containerId}_option_${$optionToHighlight.index()}`);
                     }
-                    if (this.$customOptionsList && this.$customOptionsList.length) {
-                       this.$customOptionsList.attr('aria-activedescendant', $optionToHighlight.attr('id'));
-                       $optionToHighlight.addClass('focused-option'); // Add visual highlight
-                        // Optional: Scroll the item into view if needed
-                        // $optionToHighlight[0].scrollIntoView({ block: 'nearest' });
-                    }
-                } else if (this.$customOptionsList && this.$customOptionsList.length) { // Refactored: Combined else and nested if
-                       this.$customOptionsList.attr('aria-activedescendant', '');
+                    this.$customOptionsList?.attr('aria-activedescendant', $optionToHighlight.attr('id')); // Use optional chaining
+                    $optionToHighlight.addClass('focused-option'); // Add visual highlight
+                } else {
+                     this.$customOptionsList?.attr('aria-activedescendant', ''); // Use optional chaining
                 }
             }
 
@@ -69,7 +63,7 @@
              * @public
              */
             updateDisplay() {
-                if (!this.$selectedTextSpan || this.$selectedTextSpan.length === 0 || !this.$displayButton || this.$displayButton.length === 0) {
+                if (!this.$selectedTextSpan?.length || !this.$displayButton?.length) { // Use optional chaining
                     console.warn(`[${this.containerId}] updateDisplay: Required elements missing.`);
                     return;
                 }
@@ -158,7 +152,7 @@
                this.$liveRegion = this.$container.find('.sr-only[aria-live]').first();
 
                /** @member {string} placeholderText - The initial placeholder text from the display button. */
-               this.placeholderText = this.$selectedTextSpan && this.$selectedTextSpan.length ? this.$selectedTextSpan.text().trim() : 'Select options...';
+               this.placeholderText = this.$selectedTextSpan?.length ? this.$selectedTextSpan.text().trim() : 'Select options...'; // Use optional chaining
 
                /** @member {boolean} isDisabled - Tracks the disabled state of the component. */
                this.isDisabled = false;
@@ -172,7 +166,7 @@
                 // --- Store the original parent of the dropdown container for DataTables integration ---
                 /** @member {jQuery} _originalDropdownParent - The original parent element of the dropdown container. */
                 this._originalDropdownParent = this.$dropdownContainer.parent();
-                console.log(`[${this.$container.attr('id') || 'No ID'}] Stored original dropdown parent:`, this._originalDropdownParent[0]);
+                console.log(`[${this.$container.attr('id') || 'No ID'}] Stored original dropdown parent:`, this._originalDropdownParent?.[0]); // Use optional chaining
 
 
                // --- Explicitly bind methods to the instance to ensure 'this' context ---
@@ -211,6 +205,9 @@
                this.hideComponent = this.hideComponent.bind(this); // Bind new method
                this.refresh = this.refresh.bind(this); // Bind new method
                 this.destroy = this.destroy.bind(this); // Bind new destroy method
+                this._updateSelectAllButton = this._updateSelectAllButton.bind(this); // Bind _updateSelectAllButton
+                this._setOptionSelectedState = this._setOptionSelectedState.bind(this); // Bind _setOptionSelectedState
+                this._updateSelectionByList = this._updateSelectionByList.bind(this); // Bind _updateSelectionByList
 
 
                // --- ID Handling ---
@@ -234,7 +231,7 @@
              * @param {string} idSuffix - The suffix to use for the generated ID (e.g., '_list').
              */
             _ensureElementId($element, idSuffix) {
-                if ($element && $element.length) {
+                if ($element?.length) { // Use optional chaining
                     if (!$element.attr('id')) {
                         $element.attr('id', `${this.containerId}${idSuffix}`);
                     }
@@ -267,7 +264,7 @@
             * @private
             */
            _setupListboxAccessibility() {
-               if (this.$labelElement && this.$labelElement.length && this.$customOptionsList && this.$customOptionsList.length) {
+               if (this.$labelElement?.length && this.$customOptionsList?.length) { // Use optional chaining
                    this.$labelElement.text(this.placeholderText || 'Multi-select options');
                    this.$customOptionsList.attr('aria-labelledby', this.$labelElement.attr('id'));
                    this.$customOptionsList.attr('role', 'listbox');
@@ -283,12 +280,12 @@
             * @private
             */
            _setupDisplayButtonAccessibility() {
-               if (this.$displayButton && this.$displayButton.length && this.$customOptionsList && this.$customOptionsList.length) {
+               if (this.$displayButton?.length && this.$customOptionsList?.length) { // Use optional chaining
                    this.$displayButton.attr('aria-haspopup', 'listbox');
                    this.$displayButton.attr('aria-expanded', 'false');
                    this.$displayButton.attr('aria-controls', this.$customOptionsList.attr('id'));
 
-                   if (this.$labelElement && this.$labelElement.length && this.$displayButton.attr('id')) {
+                   if (this.$labelElement?.length && this.$displayButton.attr('id')) { // Use optional chaining
                         this.$displayButton.attr('aria-labelledby', `${this.$labelElement.attr('id')} ${this.$displayButton.attr('id')}`);
                    } else if (this.$displayButton.attr('id')) {
                         this.$displayButton.attr('aria-labelledby', this.$displayButton.attr('id'));
@@ -296,7 +293,7 @@
                         this.$displayButton.attr('aria-label', this.placeholderText || 'Select options');
                    }
                } else {
-                    console.warn(`[${this.containerId}] Cannot set accessibility attributes on display button: Button, listbox, or SR label missing.`);
+                    console.warn(`[${this.containerId}] Cannot set ARIA attributes on display button: Button, listbox, or SR label missing.`);
                }
            }
 
@@ -305,7 +302,7 @@
             * @private
             */
            _setupSelectAllAccessibility() {
-               if (this.$selectAllDiv && this.$selectAllDiv.length) {
+               if (this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.attr('tabindex', this.options.singleSelect === true ? '-1' : '0');
                     this.$selectAllDiv.attr('aria-disabled', this.options.singleSelect === true ? 'true' : 'false');
                     this.$selectAllDiv.attr('role', 'button');
@@ -320,7 +317,7 @@
             * @private
             */
            _setupSearchInputAccessibility() {
-                if (this.$searchInput && this.$searchInput.length && this.$customOptionsList && this.$customOptionsList.length) {
+                if (this.$searchInput?.length && this.$customOptionsList?.length) { // Use optional chaining
                     this.$searchInput.attr('role', 'searchbox');
                     this.$searchInput.attr('aria-label', 'Search options');
                     this.$searchInput.attr('autocomplete', 'off');
@@ -349,7 +346,7 @@
             */
            _initializeComponent() {
                 // Conditionally show/hide search input based on options (use boolean value)
-                if (this.$searchInput && this.$searchInput.length) {
+                if (this.$searchInput?.length) { // Use optional chaining
                     if (this.options.enableSearch === true) { // Explicit boolean check
                         this.$searchInput.show();
                     } else {
@@ -361,9 +358,9 @@
 
 
                 // Conditionally show/hide Select All button based on singleSelect option (use boolean value)
-                if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) { // Explicit boolean check
+                if (this.options.singleSelect === false && this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.show();
-                } else if (this.$selectAllDiv && this.$selectAllDiv.length) {
+                } else if (this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.hide();
                 } else {
                     console.warn(`[${this.containerId}] Select All element missing.`);
@@ -377,16 +374,14 @@
 
                 // If options are already in HTML, store them as initial data
                 const initialHtmlOptions = [];
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                    this.$customOptionsList.find('li').each(function() {
-                        const $item = $(this);
-                        initialHtmlOptions.push({
-                            value: $item.attr('data-value'),
-                            text: $item.text().replace(/\s*笨能s*$/, '').trim(), // Clean up text
-                            selected: $item.hasClass('selected-option')
-                        });
+                this.$customOptionsList?.find('li').each(function() { // Use optional chaining
+                    const $item = $(this);
+                    initialHtmlOptions.push({
+                        value: $item.attr('data-value'),
+                        text: $item.text().replace(/\s*笨能s*$/, '').trim(), // Clean up text
+                        selected: $item.hasClass('selected-option')
                     });
-                }
+                });
                 this._initialOptionsData = initialHtmlOptions;
            }
 
@@ -396,7 +391,7 @@
              * @param {string} eventNamespace - The event namespace for this instance.
              */
             _bindDisplayButtonEvents(eventNamespace) {
-                if (this.$displayButton && this.$displayButton.length) {
+                if (this.$displayButton?.length) { // Use optional chaining
                     this.$displayButton.on(`click${eventNamespace}`, this._handleDisplayButtonClick);
                     this.$displayButton.on(`keydown${eventNamespace}`, this._handleDisplayButtonKeydown);
                 } else {
@@ -410,11 +405,11 @@
              * @param {string} eventNamespace - The event namespace for this instance.
              */
             _bindSearchInputEvents(eventNamespace) {
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
+                if (this.options.enableSearch === true && this.$searchInput?.length) { // Use optional chaining
                     this.$searchInput.on(`input${eventNamespace}`, this._handleSearchInput);
                     this.$searchInput.on(`keydown${eventNamespace}`, this._handleSearchInputKeydown);
                     this.$searchInput.on(`change${eventNamespace}`, (event) => event.stopPropagation()); // Prevent native change event
-                } else if (this.$searchInput && this.$searchInput.length) {
+                } else if (this.$searchInput?.length) { // Use optional chaining
                     this.$searchInput.off(eventNamespace); // Ensure events are off if search is disabled
                 } else {
                     console.warn(`[${this.containerId}] Search input element missing, cannot bind events.`);
@@ -427,10 +422,10 @@
              * @param {string} eventNamespace - The event namespace for this instance.
              */
             _bindSelectAllEvents(eventNamespace) {
-                if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) {
+                if (this.options.singleSelect === false && this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.on(`click${eventNamespace}`, this.toggleSelectAll);
                     this.$selectAllDiv.on(`keydown${eventNamespace}`, this._handleSelectAllKeydown);
-                } else if (this.$selectAllDiv && this.$selectAllDiv.length) {
+                } else if (this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.off(eventNamespace); // Ensure events are off if in single select or disabled
                 } else {
                     console.warn(`[${this.containerId}] Select All element missing.`);
@@ -443,7 +438,7 @@
              * @param {string} eventNamespace - The event namespace for this instance.
              */
             _bindOptionsListEvents(eventNamespace) {
-                 if (this.$customOptionsList && this.$customOptionsList.length) {
+                 if (this.$customOptionsList?.length) { // Use optional chaining
                     this.$customOptionsList
                         .on(`click${eventNamespace}`, 'li', this._handleOptionClick)
                         .on(`keydown${eventNamespace}`, 'li', this._handleOptionKeydown)
@@ -491,10 +486,10 @@
            _unbindEvents() {
                 const eventNamespace = `.customMultiSelect_${this.containerId}`;
 
-                if (this.$displayButton && this.$displayButton.length) this.$displayButton.off(eventNamespace);
-                if (this.$searchInput && this.$searchInput.length) this.$searchInput.off(eventNamespace);
-                if (this.$selectAllDiv && this.$selectAllDiv.length) this.$selectAllDiv.off(eventNamespace);
-                if (this.$customOptionsList && this.$customOptionsList.length) this.$customOptionsList.off(eventNamespace, 'li');
+                this.$displayButton?.off(eventNamespace); // Use optional chaining
+                this.$searchInput?.off(eventNamespace); // Use optional chaining
+                this.$selectAllDiv?.off(eventNamespace); // Use optional chaining
+                this.$customOptionsList?.off(eventNamespace, 'li'); // Use optional chaining
                 $(document).off(eventNamespace);
 
            }
@@ -508,7 +503,7 @@
             */
            _handleDisplayButtonClick() {
                 if (this.isDisabled) return;
-                if (this.$dropdownContainer && this.$dropdownContainer.length) {
+                if (this.$dropdownContainer?.length) { // Use optional chaining
                     if (this.$dropdownContainer.is(':visible')) {
                         this.hideSelect();
                     } else {
@@ -531,7 +526,7 @@
                     this.showSelect();
                 } else if (event.key === 'ArrowUp') {
                     // Allow ArrowUp to open the select if closed
-                    if (this.$dropdownContainer && this.$dropdownContainer.length && !this.$dropdownContainer.is(':visible')) {
+                    if (this.$dropdownContainer?.length && !this.$dropdownContainer.is(':visible')) { // Use optional chaining
                         event.preventDefault();
                         this.showSelect();
                     }
@@ -546,7 +541,7 @@
             * @returns {number} The number of visible options after filtering.
             */
            _filterOptions(searchTerm) {
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                     return 0;
                 }
 
@@ -580,9 +575,10 @@
             * @param {number} visibleCount - The number of visible options.
             */
            _updateSearchResultsLiveRegion(searchTerm, visibleCount) {
-                if (this.$liveRegion && this.$liveRegion.length) {
+                this.$liveRegion?.text(''); // Use optional chaining
+                if (this.$liveRegion?.length) { // Use optional chaining
                     if (searchTerm === '') {
-                        this.$liveRegion.text('');
+                        // Already cleared above
                     } else if (visibleCount === 0) {
                         this.$liveRegion.text('No results found.');
                     } else {
@@ -598,49 +594,39 @@
             */
            _handleSearchInput() {
                 if (this.isDisabled) return;
-                if (!this.$searchInput || this.$searchInput.length === 0 || !this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$searchInput?.length || !this.$customOptionsList?.length) { // Use optional chaining
                     console.warn(`[${this.containerId}] Search input handler: Required elements missing.`);
                     return;
                 }
 
                 const searchTerm = this.$searchInput.val().toLowerCase();
-
-                const $optionItems = this.$customOptionsList.find('li');
-                let visibleCount = 0;
-
-                // Optimized filtering loop
-                $optionItems.each(function() {
-                    const $item = $(this);
-                    // Cache the text content to avoid re-reading the DOM in each iteration
-                    const itemText = $item.data('text') || $item.text().toLowerCase();
-                    if (!$item.data('text')) {
-                        $item.data('text', itemText); // Store cached text
-                    }
-
-
-                    if (itemText.includes(searchTerm)) {
-                        $item.show();
-                        visibleCount++;
-                    } else {
-                        $item.hide();
-                    }
-                });
-
-                // Update live region with search results count
-                if (this.$liveRegion && this.$liveRegion.length) {
-                    if (searchTerm === '') {
-                        this.$liveRegion.text('');
-                    } else if (visibleCount === 0) {
-                        this.$liveRegion.text('No results found.');
-                    } else {
-                        this.$liveRegion.text(`${visibleCount} results found.`);
-                    }
-                }
+                const visibleCount = this._filterOptions(searchTerm);
+                this._updateSearchResultsLiveRegion(searchTerm, visibleCount);
 
                 // After filtering, if search has focus, highlight the first visible enabled option
                 if (this.$searchInput.is(':focus')) {
                     const $firstVisibleEnabledOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
                     this._updateActiveDescendant($firstVisibleEnabledOption);
+                }
+           }
+
+           /**
+            * Handles ArrowDown key press from the search input.
+            * Extracted from _handleSearchInputKeydown.
+            * @private
+            */
+           _handleSearchArrowDown() {
+                // In single select, ArrowDown from search goes directly to the first option.
+                // In multi-select, it goes to Select All or the first option.
+                if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Use optional chaining
+                    this.$selectAllDiv.focus();
+                    this._updateActiveDescendant(null);
+                } else if (this.$customOptionsList?.length) { // Use optional chaining and combined else/if
+                    const $firstVisibleEnabledOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
+                     if ($firstVisibleEnabledOption.length) {
+                         this._moveFocus(this.$searchInput, $firstVisibleEnabledOption); // Use moveFocus helper
+                         this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
+                     }
                 }
            }
 
@@ -651,7 +637,7 @@
             */
            _handleSearchInputKeydown(event) {
                 if (this.isDisabled) return;
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0 || !this.$searchInput || this.$searchInput.length === 0) {
+                if (!this.$customOptionsList?.length || !this.$searchInput?.length) { // Use optional chaining
                     console.warn(`[${this.containerId}] Search input keydown handler: Required elements missing.`);
                     return;
                 }
@@ -659,26 +645,43 @@
                 switch (event.key) {
                     case 'ArrowDown':
                         event.preventDefault();
-                        // In single select, ArrowDown from search goes directly to the first option.
-                        // In multi-select, it goes to Select All or the first option.
-                        if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Explicit boolean check
-                            this.$selectAllDiv.focus();
-                            this._updateActiveDescendant(null);
-                        } else {
-                            const $firstVisibleEnabledOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
-                             if ($firstVisibleEnabledOption.length) {
-                                 this._moveFocus(this.$searchInput, $firstVisibleEnabledOption); // Use moveFocus helper
-                                 this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
-                             }
-                        }
+                        this._handleSearchArrowDown();
                         break;
                     case 'Escape':
                         event.preventDefault();
                         this.hideSelect();
-                        if (this.$displayButton && this.$displayButton.length) this.$displayButton.focus();
+                        this.$displayButton?.focus(); // Use optional chaining
                         break;
                 }
            }
+
+           /**
+            * Handles ArrowDown key press from the Select All button.
+            * Extracted from _handleSelectAllKeydown.
+            * @private
+            */
+           _handleSelectAllArrowDown() {
+                // Focus the first *visible* and *enabled* option
+                const $firstVisibleEnabledOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
+                if ($firstVisibleEnabledOption.length) {
+                    this._moveFocus(this.$selectAllDiv, $firstVisibleEnabledOption); // Use moveFocus helper
+                    this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
+                }
+           }
+
+           /**
+            * Handles ArrowUp key press from the Select All button.
+            * Extracted from _handleSelectAllKeydown.
+            * @private
+            */
+           _handleSelectAllArrowUp() {
+                // Move focus to the search input if enabled and visible
+                if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Use optional chaining
+                    this._moveFocus(this.$selectAllDiv, this.$searchInput); // Use moveFocus helper
+                    this._updateActiveDescendant(null); // Clear active descendant as focus is now on the search input
+                }
+           }
+
 
            /**
             * Handles keydown event on the Select All button. Manages keyboard navigation from Select All.
@@ -688,7 +691,7 @@
             */
            _handleSelectAllKeydown(event) {
                 if (this.isDisabled || this.options.singleSelect === true) return; // Explicit boolean check
-                if (!this.$selectAllDiv || this.$selectAllDiv.length === 0 || !this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$selectAllDiv?.length || !this.$customOptionsList?.length) { // Use optional chaining
                     console.warn(`[${this.containerId}] Select All keydown handler: Required elements missing.`);
                     return;
                 }
@@ -701,28 +704,59 @@
                         break;
                     case 'ArrowDown':
                         event.preventDefault();
-                        // Focus the first *visible* and *enabled* option
-                        const $firstVisibleEnabledOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
-                        if ($firstVisibleEnabledOption.length) {
-                            this._moveFocus(this.$selectAllDiv, $firstVisibleEnabledOption); // Use moveFocus helper
-                            this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
-                        }
+                        this._handleSelectAllArrowDown();
                         break;
                     case 'ArrowUp':
                         event.preventDefault();
-                        // Move focus to the search input if enabled and visible (use boolean value)
-                        if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Explicit boolean check
-                            this._moveFocus(this.$selectAllDiv, this.$searchInput); // Use moveFocus helper
-                            this._updateActiveDescendant(null); // Clear active descendant as focus is now on the search input
-                        }
+                        this._handleSelectAllArrowUp();
                         break;
                     case 'Escape':
                         event.preventDefault();
                         this.hideSelect();
-                        if (this.$displayButton && this.$displayButton.length) this.$displayButton.focus();
+                        this.$displayButton?.focus(); // Use optional chaining
                         break;
                 }
            }
+
+           /**
+            * Handles click event on a list item (option) in single-select mode.
+            * Extracted from _handleOptionClick.
+            * @private
+            * @param {jQuery} $clickedItem - The jQuery object of the clicked list item.
+            */
+           _handleSingleSelectOptionClick($clickedItem) {
+                this.$customOptionsList?.find('li.selected-option').removeClass('selected-option').attr('aria-selected', 'false'); // Use optional chaining
+                $clickedItem.addClass('selected-option').attr('aria-selected', 'true');
+                this.updateDisplay();
+                this._triggerChangeEvent();
+                this.hideSelect(); // Close the dropdown after selection in single select
+                this.$displayButton?.focus(); // Use optional chaining
+           }
+
+            /**
+             * Handles click event on a list item (option) in multi-select mode.
+             * Extracted from _handleOptionClick.
+             * @private
+             * @param {jQuery} $clickedItem - The jQuery object of the clicked list item.
+             */
+           _handleMultiSelectOptionClick($clickedItem) {
+                // Toggle selection
+                this._toggleOptionSelection($clickedItem);
+                this.updateDisplay();
+                this._triggerChangeEvent();
+
+                // Update Select All button text based on current selection
+                const $optionItems = this._getSelectAllTargetOptions(); // Gets all enabled options
+                const totalOptions = $optionItems.length;
+                const selectedOptionsCount = $optionItems.filter('.selected-option').length;
+                const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions; // Ensure totalOptions is not zero
+                this._updateSelectAllButton(allSelected);
+
+                // Keep focus on the clicked item in multi-select
+                $clickedItem.focus();
+                this._updateActiveDescendant(null); // Clear active descendant as focus is on the item
+           }
+
 
            /**
             * Handles click event on a list item (option). Toggles selection in multi-select,
@@ -739,29 +773,9 @@
                 }
 
                 if (this.options.singleSelect === true) { // Explicit boolean check
-                     // Single select mode: Deselect all others, select this one, and close
-                     this.$customOptionsList.find('li.selected-option').removeClass('selected-option').attr('aria-selected', 'false');
-                     $clickedItem.addClass('selected-option').attr('aria-selected', 'true');
-                     this.updateDisplay();
-                     this._triggerChangeEvent();
-                     this.hideSelect(); // Close the dropdown after selection in single select
-                     if (this.$displayButton && this.$displayButton.length) this.$displayButton.focus(); // Return focus to display button
+                    this._handleSingleSelectOptionClick($clickedItem);
                 } else {
-                     // Multi-select mode: Toggle selection
-                     this._toggleOptionSelection($clickedItem);
-                     this.updateDisplay();
-                     this._triggerChangeEvent();
-
-                     // Update Select All button text based on current selection
-                     const $optionItems = this._getSelectAllTargetOptions(); // Gets all enabled options
-                     const totalOptions = $optionItems.length;
-                     const selectedOptionsCount = $optionItems.filter('.selected-option').length;
-                     const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions; // Ensure totalOptions is not zero
-                     this._updateSelectAllButton(allSelected);
-
-                     // Keep focus on the clicked item in multi-select
-                     $clickedItem.focus();
-                     this._updateActiveDescendant(null); // Clear active descendant as focus is on the item
+                    this._handleMultiSelectOptionClick($clickedItem);
                 }
            }
 
@@ -778,21 +792,18 @@
                     return;
                 }
 
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] List item keydown handler: Options list missing.`);
                      return;
                 }
 
                 const $optionItems = this.$customOptionsList.find('li:visible:not(.disabled-option)'); // Only consider *visible* and *enabled* options
 
-                // ** Add check for $optionItems validity before proceeding **
-                if (!$optionItems || $optionItems.length === 0) {
+                if (!$optionItems?.length) { // Use optional chaining
                     return; // Exit if no options are found after filtering
                 }
 
-
                 const currentIndex = $optionItems.index($currentItem);
-
 
                 switch (event.key) {
                     case 'ArrowDown':
@@ -800,13 +811,11 @@
                         // Add check to ensure there is a next index
                         if (currentIndex < $optionItems.length - 1) {
                             const $nextItem = $optionItems.eq(currentIndex + 1);
-                            // ** Add check for $nextItem validity before accessing length or focusing **
-                            if ($nextItem && $nextItem.length) { // This is the crucial check
+                            if ($nextItem?.length) { // Use optional chaining
                                 this._moveFocus($currentItem, $nextItem); // Use moveFocus helper
                                  this._updateActiveDescendant(null); // Clear active descendant as focus is now on the item
                             }
                         } else {
-                              // If at the last item, move focus to the search input if enabled, or Select All if available, or loop to the first item
                              this._handleNavigationFromLastOption($currentItem); // Use helper
                         }
                         break;
@@ -816,8 +825,7 @@
                         if (currentIndex > 0) {
                             // Move focus to the previous visible enabled option
                             const $prevItem = $optionItems.eq(currentIndex - 1);
-                            // ** Add check for $prevItem validity before accessing length or focusing **
-                            if ($prevItem && $prevItem.length) { // This is the crucial check
+                            if ($prevItem?.length) { // Use optional chaining
                                  this._moveFocus($currentItem, $prevItem); // Use helper
                                  this._updateActiveDescendant(null); // Clear active descendant as focus is on the item
                             }
@@ -835,10 +843,7 @@
                     case 'Escape':
                         event.preventDefault();
                         this.hideSelect(); // hideSelect has internal checks now
-                         // Add check before focusing
-                        if (this.$displayButton && this.$displayButton.length) { // Added length check
-                           this.$displayButton.focus();
-                        }
+                        this.$displayButton?.focus(); // Use optional chaining
                         break;
                 }
            }
@@ -853,7 +858,7 @@
                 const $hoveredItem = $(event.currentTarget);
                 if (!$hoveredItem.hasClass('disabled-option')) {
                      // If focus is not currently on a list item, update aria-activedescendant on mouseover
-                    if (this.$customOptionsList && this.$customOptionsList.length && !this.$customOptionsList.find(':focus').length) { // Added length check
+                    if (this.$customOptionsList?.length && !this.$customOptionsList.find(':focus').length) { // Use optional chaining
                          this._updateActiveDescendant($hoveredItem);
                     }
                 }
@@ -867,10 +872,10 @@
             _handleOptionMouseOut(event) {
                 if (this.isDisabled) return;
                 // Only clear if the focus is not within the listbox, search, or select all
-                if (this.$customOptionsList && this.$customOptionsList.length &&
+                if (this.$customOptionsList?.length && // Use optional chaining
                     !this.$customOptionsList.find(':focus').length &&
-                    !(this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':focus')) && // Explicit boolean check
-                    !(this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.attr('aria-disabled') !== 'true')) { // Explicit boolean check
+                    !(this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':focus')) && // Use optional chaining
+                    !(this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.attr('aria-disabled') !== 'true')) { // Use optional chaining
                      this._updateActiveDescendant(null);
                 }
            }
@@ -884,7 +889,7 @@
            _handleDocumentClick(event) {
                 if (this.isDisabled) return;
                 // Check if the click occurred outside this specific container AND the dropdown is currently visible
-                if (this.$container && this.$container.length && this.$dropdownContainer && this.$dropdownContainer.length &&
+                if (this.$container?.length && this.$dropdownContainer?.length && // Use optional chaining
                     !$.contains(this.$container[0], event.target) && this.$dropdownContainer.is(':visible')) {
                     this.hideSelect();
                 }
@@ -898,7 +903,7 @@
             */
            _handleDocumentFocusIn(event) {
                 if (this.isDisabled) return;
-                const containerElement = this.$container && this.$container.length ? this.$container[0] : null;
+                const containerElement = this.$container?.[0]; // Use optional chaining
 
                 if (containerElement && $.contains(document.documentElement, containerElement)) {
                      if (!$.contains(containerElement, event.target)) {
@@ -906,12 +911,12 @@
                           setTimeout(() => {
                                // Re-get the instance and element inside the timeout for robustness
                                 const $containerInTimeout = $(`#${this.containerId}`); // Use this.containerId
-                                const instanceInTimeout = $containerInTimeout.length ? $containerInTimeout.data('customMultiSelect') : null; // Get instance by ID
-                                const elementInTimeout = $containerInTimeout.length ? $containerInTimeout[0] : null; // Get element by ID
+                                const instanceInTimeout = $containerInTimeout?.data('customMultiSelect'); // Use optional chaining
+                                const elementInTimeout = $containerInTimeout?.[0]; // Use optional chaining
 
                                 // Check if the instance, element, and dropdown are still valid and visible,
                                 // and if focus is still outside the container and the component is not disabled.
-                                if (instanceInTimeout && elementInTimeout && $.contains(document.documentElement, elementInTimeout) && instanceInTimeout.$dropdownContainer && instanceInTimeout.$dropdownContainer.length && instanceInTimeout.$dropdownContainer.is(':visible') && !$.contains(instanceInTimeout.$container[0], document.activeElement) && !$.contains(instanceInTimeout.$dropdownContainer[0], document.activeElement) && !instanceInTimeout.isDisabled) {
+                                if (instanceInTimeout && elementInTimeout && $.contains(document.documentElement, elementInTimeout) && instanceInTimeout.$dropdownContainer?.length && instanceInTimeout.$dropdownContainer.is(':visible') && !$.contains(instanceInTimeout.$container[0], document.activeElement) && !$.contains(instanceInTimeout.$dropdownContainer[0], document.activeElement) && !instanceInTimeout.isDisabled) {
                                     instanceInTimeout.hideSelect(); // hideSelect has internal checks now
                                 } else {
                                     console.log(`[${this.containerId}] Focus moved back inside during delay, component is disabled, or instance/element is no longer valid.`);
@@ -934,10 +939,10 @@
             */
            _moveFocus($fromItem, $toItem) {
                 // Ensure the element we are moving focus *from* is focusable via script
-                if ($fromItem && $fromItem.length && ($fromItem.is('li') || $fromItem.is('input') || $fromItem.is('[role="button"]'))) {
+                if ($fromItem?.length && ($fromItem.is('li') || $fromItem.is('input') || $fromItem.is('[role="button"]'))) { // Use optional chaining
                     $fromItem.attr('tabindex', '-1');
                 }
-                if ($toItem && $toItem.length) {
+                if ($toItem?.length) { // Use optional chaining
                     $toItem.attr('tabindex', '0');
                     $toItem.focus();
                 }
@@ -951,17 +956,17 @@
             */
            _handleNavigationFromLastOption($currentItem) {
                 // Try to move focus to the search input if enabled and visible (use boolean value)
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Explicit boolean check
+                if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Use optional chaining
                     this._moveFocus($currentItem, this.$searchInput); // Use moveFocus helper
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on the search input
                 }
                 // If search is not available/enabled, try to move focus to Select All (multi-select only) (use boolean value)
-                else if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Explicit boolean check
+                else if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Use optional chaining
                     this._moveFocus($currentItem, this.$selectAllDiv); // Use moveFocus helper
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on Select All
                 }
                 // If no element above, keep focus on the last item (or loop back if desired, but keeping focus is simpler)
-                else if ($currentItem && $currentItem.length) { // Refactored: Combined else and nested if
+                else if ($currentItem?.length) { // Use optional chaining
                     $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
                 }
            }
@@ -974,18 +979,18 @@
             */
            _handleNavigationFromFirstOption($currentItem) {
                 // Try to move focus to Select All first (multi-select only) (use boolean value)
-                if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Explicit boolean check
+                if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.is(':visible') && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Use optional chaining
                     this._moveFocus($currentItem, this.$selectAllDiv); // Use moveFocus helper
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on Select All
                 }
                 // If Select All is not available/enabled, try to move focus to the search input (if enabled) (use boolean value)
-                else if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Explicit boolean check
+                else if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Use optional chaining
                     this._moveFocus($currentItem, this.$searchInput); // Use moveFocus helper
                     this._updateActiveDescendant(null); // Clear active descendant as focus is now on the search input
                 }
                 // If no element above, keep focus on the first item
-                else {
-                    if ($currentItem && $currentItem.length) $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
+                else if ($currentItem?.length) { // Use optional chaining
+                    $currentItem.attr('tabindex', '0'); // Restore tabindex if focus didn't move
                 }
            }
 
@@ -1002,7 +1007,7 @@
                      console.warn(`[${this.containerId}] _toggleOptionSelection called in single-select mode. Use _handleOptionClick instead.`);
                      return;
                 }
-                if ($optionItem && $optionItem.length) {
+                if ($optionItem?.length) { // Use optional chaining
                     $optionItem.toggleClass('selected-option');
                     const isSelected = $optionItem.hasClass('selected-option');
                     $optionItem.attr('aria-selected', isSelected ? 'true' : 'false');
@@ -1043,19 +1048,7 @@
             * @private
             */
            _triggerChangeEvent() {
-                if (this.$container && this.$container.length) {
-                   const currentSelectedValues = this.getSelectedValues();
-                   const currentSelectedTexts = this.getSelectedTexts();
-
-                   // Check if the selection state has actually changed
-                   if (!this._areArraysEqual(currentSelectedValues, this._lastSelectedValues)) {
-                        // Update last recorded values *before* triggering the event
-                        this._lastSelectedValues = [...currentSelectedValues];
-                        this.$container.trigger('change.customMultiSelect', [currentSelectedValues, currentSelectedTexts]);
-                   }
-                } else {
-                    console.warn(`[${this.containerId}] _triggerChangeEvent: Container element missing, cannot trigger event.`);
-                }
+                this.$container?.trigger('change.customMultiSelect', [this.getSelectedValues(), this.getSelectedTexts()]); // Use optional chaining
            }
 
             /**
@@ -1063,9 +1056,8 @@
              * @private
              */
             _performPostSelectionCleanup() {
-                // Clear search and show all options after setting values
-                if (this.$searchInput && this.$searchInput.length) this.$searchInput.val('');
-                if (this.$customOptionsList && this.$customOptionsList.length) this.$customOptionsList.find('li').show();
+                this.$searchInput?.val(''); // Use optional chaining
+                this.$customOptionsList?.find('li').show(); // Use optional chaining
                 this._updateActiveDescendant(null); // Clear active descendant
 
 
@@ -1091,7 +1083,7 @@
                      console.warn(`[${this.containerId}] _updateSelectionByList expects an array.`);
                      return;
                  }
-                 if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                 if (!this.$customOptionsList?.length) { // Use optional chaining
                       console.warn(`[${this.containerId}] _updateSelectionByList: Options list missing.`);
                       return;
                  }
@@ -1122,7 +1114,7 @@
                      }
 
 
-                     if ($itemToSelect.length) {
+                     if ($itemToSelect?.length) { // Use optional chaining
                          // In single select, ensure only the last item in the array is selected
                          if (self.options.singleSelect === true && item !== items[items.length - 1]) {
                              return; // Skip if not the last item in single select mode
@@ -1146,39 +1138,44 @@
                 if (this.isDisabled) {
                     return;
                 }
-                if (this.$displayButton && this.$displayButton.length) this.$displayButton.attr('aria-expanded', 'true');
-                if (this.$dropdownContainer && this.$dropdownContainer.length) this.$dropdownContainer.show();
+                if (!this.$dropdownContainer?.length || !this.$displayButton?.length) { // Use optional chaining
+                     console.warn(`[${this.containerId}] showSelect: Required elements missing.`);
+                     return;
+                }
+
+                this.$displayButton.attr('aria-expanded', 'true');
+                this.$dropdownContainer.show();
 
                 // Focus management after showing the dropdown
                 // If search is enabled, focus search (use boolean value)
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Explicit boolean check
+                if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.is(':visible') && !this.$searchInput.prop('disabled')) { // Use optional chaining
                     this.$searchInput.focus();
                 }
                 // If single select, focus the selected option or first enabled option (use boolean value)
-                else if (this.options.singleSelect === true && this.$customOptionsList && this.$customOptionsList.length) { // Explicit boolean check
+                else if (this.options.singleSelect === true && this.$customOptionsList?.length) { // Use optional chaining
                      const $selectedOption = this.$customOptionsList.find('li.selected-option:not(.disabled-option)').first();
                      const $firstEnabledOption = this.$customOptionsList.find('li:not(.disabled-option)').first();
                      let $optionToFocus = null;
 
-                     if ($selectedOption.length) {
+                     if ($selectedOption?.length) { // Use optional chaining
                          $optionToFocus = $selectedOption;
-                     } else if ($firstEnabledOption.length) {
+                     } else if ($firstEnabledOption?.length) { // Use optional chaining
                          $optionToFocus = $firstEnabledOption;
                      }
 
-                     if ($optionToFocus && $optionToFocus.length) {
+                     if ($optionToFocus?.length) { // Use optional chaining
                          $optionToFocus.attr('tabindex', '0');
                          $optionToFocus.focus();
                      }
                 }
                 // If multi-select and no search, focus Select All (use boolean value)
-                else if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Explicit boolean check
+                else if (this.options.singleSelect === false && this.$selectAllDiv?.length && this.$selectAllDiv.attr('aria-disabled') !== 'true') { // Use optional chaining
                    this.$selectAllDiv.focus();
                 }
                 // Fallback: focus the first visible enabled option in the list
-                else if (this.$customOptionsList && this.$customOptionsList.length) {
+                else if (this.$customOptionsList?.length) { // Use optional chaining
                     const $firstOption = this.$customOptionsList.find('li:visible:not(.disabled-option)').first();
-                    if ($firstOption.length) {
+                    if ($firstOption?.length) { // Use optional chaining
                         $firstOption.attr('tabindex', '0');
                         $firstOption.focus();
                     }
@@ -1190,30 +1187,32 @@
             * @public
             */
            hideSelect() {
-                if (this.$dropdownContainer && this.$dropdownContainer.length) this.$dropdownContainer.hide();
-                if (this.$displayButton && this.$displayButton.length) this.$displayButton.attr('aria-expanded', 'false');
+                if (!this.$dropdownContainer?.length || !this.$displayButton?.length) { // Use optional chaining
+                     console.warn(`[${this.containerId}] hideSelect: Required elements missing.`);
+                     return;
+                }
+                this.$dropdownContainer.hide();
+                this.$displayButton.attr('aria-expanded', 'false');
 
                 this.updateDisplay(); // Update the display text
 
                 // Clear search and show all options when hiding
-                if (this.$searchInput && this.$searchInput.length) this.$searchInput.val('');
-                if (this.$customOptionsList && this.$customOptionsList.length) this.$customOptionsList.find('li').show();
+                this.$searchInput?.val(''); // Use optional chaining
+                this.$customOptionsList?.find('li').show(); // Use optional chaining
 
                 // Ensure all list items have tabindex="-1" when the dropdown is hidden
-                if (this.$customOptionsList && this.$customOptionsList.length) this.$customOptionsList.find('li').attr('tabindex', '-1');
+                this.$customOptionsList?.find('li').attr('tabindex', '-1'); // Use optional chaining
 
                 // Clear aria-activedescendant and any visual highlight
                 this._updateActiveDescendant(null);
 
                 // Clear live region text
-                if (this.$liveRegion && this.$liveRegion.length) this.$liveRegion.text('');
+                this.$liveRegion?.text(''); // Use optional chaining
 
 
                 // Return focus to the display button if focus is still within the container
-                if (this.$container && this.$container.length && this.$container.find(':focus').length > 0) {
-                     if(this.$displayButton && this.$displayButton.length) {
-                       this.$displayButton.focus();
-                     }
+                if (this.$container?.length && this.$container.find(':focus').length > 0) { // Use optional chaining
+                     this.$displayButton?.focus(); // Use optional chaining
                 } else {
                      console.log(`[${this.containerId}] Focus was already outside the container or container is invalid.`);
                 }
@@ -1226,7 +1225,7 @@
              * @returns {jQuery} A jQuery collection of relevant option items.
              */
             _getSelectAllTargetOptions() {
-                 if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                 if (!this.$customOptionsList?.length) { // Use optional chaining
                       return $(); // Return empty jQuery object if list is missing
                  }
                  // Always operate on all enabled options, regardless of search filter
@@ -1241,7 +1240,7 @@
              */
             _updateSelectAllButton(allSelected) {
                  console.log(`[${this.containerId}] _updateSelectAllButton called. All selected: ${allSelected}`); // Added log
-                 if (this.$selectAllDiv && this.$selectAllDiv.length) {
+                 if (this.$selectAllDiv?.length) { // Use optional chaining
                      this.$selectAllDiv.text(allSelected ? 'Deselect All' : 'Select All'); // Corrected text logic
                      if (allSelected) {
                          this.$selectAllDiv.addClass("selected");
@@ -1262,13 +1261,13 @@
                     return; // Only active in multi-select
                 }
 
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] toggleSelectAll: Options list missing.`);
                      return;
                 }
 
                 // Operate only on visible, enabled options if search is active, otherwise all enabled options (use boolean value)
-                const $optionItems = (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.val() !== '') // Explicit boolean check
+                const $optionItems = (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.val() !== '') // Use optional chaining
                     ? this.$customOptionsList.find('li:visible:not(.disabled-option)')
                     : this.$customOptionsList.find('li:not(.disabled-option)');
 
@@ -1294,20 +1293,19 @@
                     }
                 });
 
-                // --- FIX: Update Select All button text based on the *new* state ---
+                // Update Select All button text based on the *new* state
                 const newSelectedOptionsCount = $optionItems.filter('.selected-option').length;
                 const allSelectedAfterToggle = totalOptions > 0 && newSelectedOptionsCount === totalOptions;
                 this._updateSelectAllButton(allSelectedAfterToggle);
-                // --- End FIX ---
 
 
                 this.updateDisplay(); // Update the main display text
                 this._triggerChangeEvent();
 
                 // Keep focus on Select All button unless search is active, then focus search (use boolean value)
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length && this.$searchInput.val() !== '') { // Explicit boolean check
+                if (this.options.enableSearch === true && this.$searchInput?.length && this.$searchInput.val() !== '') { // Use optional chaining
                     this.$searchInput.focus();
-                } else if (this.$selectAllDiv && this.$selectAllDiv.length) {
+                } else if (this.$selectAllDiv?.length) { // Use optional chaining
                     this.$selectAllDiv.focus();
                 }
            }
@@ -1326,22 +1324,18 @@
                // Re-bind events when enabling
                this._bindEvents();
 
-               if (this.$displayButton && this.$displayButton.length) {
-                   this.$displayButton.prop('disabled', false).attr('tabindex', '0').removeClass('disabled-option');
-               }
+               this.$displayButton?.prop('disabled', false).attr('tabindex', '0').removeClass('disabled-option'); // Use optional chaining
                // Only enable Select All if not single select
-               if (this.options.singleSelect === false && this.$selectAllDiv && this.$selectAllDiv.length) {
+               if (this.options.singleSelect === false && this.$selectAllDiv?.length) { // Use optional chaining
                    this.$selectAllDiv.attr('aria-disabled', 'false').attr('tabindex', '0').show().removeClass('disabled-option');
                }
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('li').each(function() {
-                        $(this).removeClass('disabled-option').attr('aria-disabled', 'false').attr('tabindex', '-1');
-                   });
-                }
-                // Enable search input if the option is set and show it
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
-                    this.$searchInput.prop('disabled', false).show();
-                }
+               this.$customOptionsList?.find('li').each(function() { // Use optional chaining
+                    $(this).removeClass('disabled-option').attr('aria-disabled', 'false').attr('tabindex', '-1');
+               });
+               // Enable search input if the option is set and show it
+               if (this.options.enableSearch === true && this.$searchInput?.length) { // Use optional chaining
+                   this.$searchInput.prop('disabled', false).show();
+               }
 
            }
 
@@ -1361,21 +1355,12 @@
                // Unbind events when disabling
                this._unbindEvents();
 
-               if (this.$displayButton && this.$displayButton.length) {
-                   this.$displayButton.prop('disabled', true).attr('tabindex', '-1').addClass('disabled-option');
-               }
-               if (this.$selectAllDiv && this.$selectAllDiv.length) { // Always disable Select All when component is disabled
-                   this.$selectAllDiv.attr('aria-disabled', 'true').attr('tabindex', '-1').addClass('disabled-option');
-               }
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('li').each(function() {
-                        $(this).addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
-                   });
-                }
-                // Disable search input and hide it
-                if (this.options.enableSearch === true && this.$searchInput && this.$searchInput.length) {
-                    this.$searchInput.prop('disabled', true).hide();
-                }
+               this.$displayButton?.prop('disabled', true).attr('tabindex', '-1').addClass('disabled-option'); // Use optional chaining
+               this.$selectAllDiv?.attr('aria-disabled', 'true').attr('tabindex', '-1').addClass('disabled-option'); // Use optional chaining
+               this.$customOptionsList?.find('li').each(function() { // Use optional chaining
+                    $(this).addClass('disabled-option').attr('aria-disabled', 'true').attr('tabindex', '-1');
+               });
+               this.$searchInput?.prop('disabled', true).hide(); // Use optional chaining
 
            }
 
@@ -1385,7 +1370,7 @@
             * @returns {Array<string>} An array of selected option values. Returns an empty array if no options are selected or the list is missing. In single-select mode, returns an array with at most one element.
             */
            getSelectedValues() {
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] getSelectedValues: Options list missing.`);
                      return [];
                 }
@@ -1401,7 +1386,7 @@
             * @returns {Array<string>} An array of selected option text contents. Returns an empty array if no options are selected or the list is missing. In single-select mode, returns an array with at most one element.
             */
            getSelectedTexts() {
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] getSelectedTexts: Options list missing.`);
                      return [];
                 }
@@ -1427,13 +1412,13 @@
             * @param {boolean} isSelected - True to select, false to deselect.
             */
            _setOptionSelectedState($item, isSelected) {
-                if ($item && $item.length && !$item.hasClass('disabled-option')) {
+                if ($item?.length && !$item.hasClass('disabled-option')) { // Use optional chaining
                     if (isSelected) {
                         $item.addClass('selected-option').attr('aria-selected', 'true');
                     } else {
                         $item.removeClass('selected-option').attr('aria-selected', 'false');
                     }
-                } else if ($item && $item.length && $item.hasClass('disabled-option')) {
+                } else if ($item?.length && $item.hasClass('disabled-option')) { // Use optional chaining
                      console.warn(`[${this.containerId}] Attempted to change state of disabled option with value: ${$item.attr('data-value')}`);
                 } else {
                      console.warn(`[${this.containerId}] _setOptionSelectedState: Invalid option item provided.`);
@@ -1454,7 +1439,7 @@
                     console.warn(`[${this.containerId}] setSelectedValues expects an array.`);
                     return;
                 }
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] setSelectedValues: Options list missing.`);
                      return;
                 }
@@ -1479,7 +1464,7 @@
                     console.warn(`[${this.containerId}] setSelectedTexts expects an array.`);
                     return;
                 }
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] setSelectedTexts: Options list missing.`);
                      return;
                 }
@@ -1511,7 +1496,7 @@
                    .attr('aria-selected', option.selected ? 'true' : 'false')
                    .text(option.text);
 
-               const currentListSize = this.$customOptionsList.find('li').length;
+               const currentListSize = this.$customOptionsList?.find('li').length || 0; // Use optional chaining
                $newItem.attr('id', `${this.containerId}_option_${currentListSize + index}`);
 
                if (this.options.singleSelect === false) {
@@ -1544,7 +1529,7 @@
                     console.warn(`[${this.containerId}] loadSelectOptions expects an array for optionsData.`);
                     return;
                 }
-                if (!this.$customOptionsList || this.$customOptionsList.length === 0) {
+                if (!this.$customOptionsList?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] loadSelectOptions: Options list missing.`);
                      return;
                 }
@@ -1577,10 +1562,10 @@
                }
 
 
-                if (this.$searchInput && this.$searchInput.length) this.$searchInput.val('');
-                if (this.$customOptionsList && this.$customOptionsList.length) this.$customOptionsList.find('li').show();
+                this.$searchInput?.val(''); // Use optional chaining
+                this.$customOptionsList?.find('li').show(); // Use optional chaining
                 this._updateActiveDescendant(null);
-                if (this.$liveRegion && this.$liveRegion.length) this.$liveRegion.text('');
+                this.$liveRegion?.text(''); // Use optional chaining
 
                this.updateDisplay();
                this._lastSelectedValues = this.getSelectedValues();
@@ -1597,11 +1582,9 @@
                this.$container.addClass('disabled');
                this._setElementDisabledState(this.$displayButton, true);
                this._setElementDisabledState(this.$selectAllDiv, true);
-               if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('li').each((index, element) => {
-                       this._setElementDisabledState($(element), true);
-                   });
-               }
+               this.$customOptionsList?.find('li').each((index, element) => { // Use optional chaining
+                   this._setElementDisabledState($(element), true);
+               });
                this._setElementDisabledState(this.$searchInput, true);
            }
 
@@ -1613,19 +1596,17 @@
            _applyEnabledStateOnShow() {
                this._setElementDisabledState(this.$displayButton, false);
                // Only enable Select All if not single select
-               if (this.options.singleSelect === false) {
+               if (this.options.singleSelect === false && this.$selectAllDiv?.length) { // Use optional chaining
                    this._setElementDisabledState(this.$selectAllDiv, false);
-                   if (this.$selectAllDiv && this.$selectAllDiv.length) this.$selectAllDiv.show(); // Ensure visible
+                   this.$selectAllDiv.show(); // Ensure visible
                }
-               if (this.$customOptionsList && this.$customOptionsList.length) {
-                   this.$customOptionsList.find('li').each((index, element) => {
-                       this._setElementDisabledState($(element), false);
-                   });
-               }
+               this.$customOptionsList?.find('li').each((index, element) => { // Use optional chaining
+                   this._setElementDisabledState($(element), false);
+               });
                // Enable search input if the option is set and show it
-               if (this.options.enableSearch === true) {
+               if (this.options.enableSearch === true && this.$searchInput?.length) { // Use optional chaining
                    this._setElementDisabledState(this.$searchInput, false);
-                   if (this.$searchInput && this.$searchInput.length) this.$searchInput.show();
+                   this.$searchInput.show();
                }
            }
 
@@ -1639,16 +1620,14 @@
                 if (this.isDisabled) {
                     return;
                 }
-                if (!this.$container || this.$container.length === 0) {
+                if (!this.$container?.length) { // Use optional chaining
                      console.warn(`[${this.containerId}] showComponent: Container element missing.`);
                      return;
                 }
 
                 this.$container.removeClass('hidden-component');
                 this._bindEvents();
-                if (this.$displayButton && this.$displayButton.length) {
-                    this.$displayButton.attr('tabindex', '0');
-                }
+                this.$displayButton?.attr('tabindex', '0'); // Use optional chaining
 
                 if (this.isDisabled) {
                     this._applyDisabledStateOnShow();
@@ -1665,13 +1644,11 @@
             */
            hideComponent() {
                 console.log(`[${this.containerId}] hideComponent called.`);
-                if (this.$container && this.$container.length) {
+                if (this.$container?.length) { // Use optional chaining
                     this.hideSelect();
                     this.$container.addClass('hidden-component');
                     this._unbindEvents();
-                    if (this.$displayButton && this.$displayButton.length) {
-                        this.$displayButton.attr('tabindex', '-1');
-                    }
+                    this.$displayButton?.attr('tabindex', '-1'); // Use optional chaining
                     console.log(`[${this.containerId}] Component hidden.`);
                 } else {
                      console.warn(`[${this.containerId}] hideComponent: Container element missing.`);
@@ -1694,25 +1671,17 @@
                 if (this._initialOptionsData && Array.isArray(this._initialOptionsData) && this._initialOptionsData.length > 0) {
                      this.loadSelectOptions(this._initialOptionsData, true);
                 } else {
-                     if (this.$customOptionsList && this.$customOptionsList.length) {
-                          this.$customOptionsList.empty();
-                     }
+                     this.$customOptionsList?.empty(); // Use optional chaining
                      this.updateDisplay();
                      this._lastSelectedValues = [];
                      this._triggerChangeEvent();
                 }
 
-                if (this.$searchInput && this.$searchInput.length) {
-                     this.$searchInput.val('');
-                }
-                if (this.$customOptionsList && this.$customOptionsList.length) {
-                     this.$customOptionsList.find('li').show();
-                }
+                this.$searchInput?.val(''); // Use optional chaining
+                this.$customOptionsList?.find('li').show(); // Use optional chaining
 
                 this._updateActiveDescendant(null);
-                if (this.$liveRegion && this.$liveRegion.length) {
-                     this.$liveRegion.text('');
-                }
+                this.$liveRegion?.text(''); // Use optional chaining
 
                 console.log(`[${this.containerId}] Component refreshed.`);
            }
@@ -1721,11 +1690,11 @@
             * Sets the disabled state and related attributes for a given element.
             * Extracted from enable and disable.
             * @private
-            * @param {jQuery} $element - The jQuery element to set state for.
+            * @param {jQuery} $element - The jQuery object to set state for.
             * @param {boolean} isDisabled - True to disable, false to enable.
             */
            _setElementDisabledState($element, isDisabled) {
-               if ($element && $element.length) {
+               if ($element?.length) { // Use optional chaining
                    $element.prop('disabled', isDisabled).attr('aria-disabled', isDisabled ? 'true' : 'false');
                    if (isDisabled) {
                        $element.attr('tabindex', '-1').addClass('disabled-option');
@@ -1751,10 +1720,10 @@
            destroy() {
                 console.log(`[${this.containerId}] Destroying component instance.`);
 
-                if (this.$dropdownContainer && this.$dropdownContainer.length && this.$dropdownContainer.is(':visible') && !$.contains(this.$container[0], this.$dropdownContainer[0])) {
+                if (this.$dropdownContainer?.length && this.$dropdownContainer.is(':visible') && !$.contains(this.$container?.[0], this.$dropdownContainer[0])) { // Use optional chaining
                      this.$dropdownContainer.remove();
                      console.log(`[${this.containerId}] Removed detached dropdown from body during destroy.`);
-                } else if (this.$dropdownContainer && this.$dropdownContainer.length) {
+                } else if (this.$dropdownContainer?.length) { // Use optional chaining
                     this.$dropdownContainer.hide();
                 }
 
@@ -1762,7 +1731,7 @@
                 this._unbindEvents();
                 console.log(`[${this.containerId}] Events unbound during destroy.`);
 
-                if (this.$container && this.$container.length) {
+                if (this.$container?.length) { // Use optional chaining
                     this.$container.removeData('customMultiSelect');
                     console.log(`[${this.containerId}] Removed instance data.`);
                 }
@@ -1817,7 +1786,7 @@
 
        $.fn.val = function(value) {
            const $firstElement = this.first();
-           const instance = $firstElement.data('customMultiSelect');
+           const instance = $firstElement?.data('customMultiSelect'); // Use optional chaining
 
            if (instance) {
                if (this.length > 0 && arguments.length > 0) {
@@ -1877,7 +1846,7 @@ $(document).ready(function () {
         const targetId = $(this).attr('for');
         const $targetElement = $('#' + targetId);
 
-        if ($targetElement.length) {
+        if ($targetElement?.length) { // Use optional chaining
             $targetElement.focus();
         } else {
             console.warn(`Element with ID "${targetId}" not found for label.`);
