@@ -725,8 +725,16 @@
             * @param {jQuery} $clickedItem - The jQuery object of the clicked list item.
             */
            _handleSingleSelectOptionClick($clickedItem) {
-                this.$customOptionsList?.find('li.selected-option').removeClass('selected-option').attr('aria-selected', 'false'); // Use optional chaining
-                $clickedItem.addClass('selected-option').attr('aria-selected', 'true');
+
+                // Check if the clicked item is already selected
+                if ($clickedItem.hasClass('selected-option')) {
+                    // If already selected, deselect it
+                    $clickedItem.removeClass('selected-option').attr('aria-selected', 'false');                 
+                } else {
+                    // If not already selected, proceed with normal single select behavior
+                    this.$customOptionsList?.find('li.selected-option').removeClass('selected-option').attr('aria-selected', 'false'); // Use optional chaining
+                    $clickedItem.addClass('selected-option').attr('aria-selected', 'true');
+                }               
                 this.updateDisplay();
                 this._triggerChangeEvent();
                 this.hideSelect(); // Close the dropdown after selection in single select
