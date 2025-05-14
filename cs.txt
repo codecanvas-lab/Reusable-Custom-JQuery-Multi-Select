@@ -1676,6 +1676,22 @@
            }
 
            /**
+            * Returns the total number of options available in the select.
+            * Counts all list items (<li>) within the options list.
+            * @public
+            * @returns {number} The total count of options. Returns 0 if the options list element is not found.
+            */
+           getOptionCount() {
+               // Check if the custom options list element exists
+               if (this.$customOptionsList?.length) { // Use optional chaining for safety
+                   // Count all <li> elements within the list
+                   return this.$customOptionsList.find('li').length;
+               }
+               // Return 0 if the options list element is not found
+               return 0;
+           }
+
+           /**
             * Sets the disabled state and related attributes for a given element.
             * Extracted from enable and disable.
             * @private
