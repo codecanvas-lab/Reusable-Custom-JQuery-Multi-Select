@@ -1439,6 +1439,134 @@
                 console.log(`[${this.containerId}] setSelectedValues complete.`);
            }
 
+/**
+            * Dynamically sets the selection mode of the component.
+            * @public
+            * @param {boolean} enableSingleSelect - True to set to single-select mode, False for multi-select mode.
+            */
+           setMode(enableSingleSelect) {
+                console.log(`[${this.containerId}] setMode called: ${enableSingleSelect ? 'Single Select' : 'Multi Select'}`);
+
+                // Ensure the input is a boolean
+                const newModeIsSingleSelect = Boolean(enableSingleSelect);
+
+                // Only proceed if the mode is actually changing
+                if (this.options.singleSelect === newModeIsSingleSelect) {
+                    console.log(`[${this.containerId}] Mode is already ${newModeIsSingleSelect ? 'single-select' : 'multi-select'}. No change needed.`);
+                    return;
+                }
+
+                // Hide the dropdown if it's currently open
+                if (this.$dropdownContainer?.length && this.$dropdownContainer.is(':visible')) { // Use optional chaining
+                    this.hideSelect();
+                }
+
+                // Update the internal option
+                this.options.singleSelect = newModeIsSingleSelect;
+                console.log(`[${this.containerId}] Internal singleSelect option updated to: ${this.options.singleSelect}`);
+
+
+                // --- Adjust UI elements based on new mode ---
+
+                // Update Select All button visibility and accessibility
+                if (this.$selectAllDiv?.length) { // Use optional chaining
+                    if (this.options.singleSelect === false) { // Only show in multi-select
+                        this.$selectAllDiv.show();
+                        this.$selectAllDiv.attr('aria-disabled', 'false').attr('tabindex', '0').removeClass('disabled-option');
+                         console.log(`[${this.containerId}] Select All shown and enabled.`);
+                    } else { // Hide in single-select
+                        this.$selectAllDiv.hide();
+                        this.$selectAllDiv.attr('aria-disabled', 'true').attr('tabindex', '-1').addClass('disabled-option');
+                         console.log(`[${this.containerId}] Select All hidden and disabled.`);
+                    }
+                     // Update Select All button text based on current selection (will be updated after selection logic)
+                     this._updateSelectAllButton(false); // Assume not all selected initially after mode change
+                } else {
+                     console.warn(`[${this.containerId}] Select All element missing.`);
+                }
+
+
+                // Update listbox ARIA attributes
+                if (this.$customOptionsList?.length) { // Use optional chaining
+                    this.$customOptionsList.attr('aria-multiselectable', this.options.singleSelect === true ? 'false' : 'true');
+                     console.log(`[${this.containerId}] Listbox aria-multiselectable set to: ${this.$customOptionsList.attr('aria-multiselectable')}`);
+                } else {
+                     console.warn(`[${this.containerId}] Options list element missing.`);
+                }
+
+
+                // Adjust checkmark visibility on options (assuming checkmark is added in multi-select)
+                if (this.$customOptionsList?.length) { // Use optional chaining
+                    this.$customOptionsList.find('li').each(function() {
+                        const $item = $(this);
+                        const $checkmark = $item.find('.checkmark'); // Find the checkmark span
+
+                        if ($checkmark.length) { // Check if checkmark exists
+                            if (newModeIsSingleSelect) {
+                                // Hide checkmarks in single-select mode
+                                $checkmark.hide();
+                                $item.attr('data-option-type','single'); // Optional: Add data attribute for styling
+                            } else {
+                                // Show checkmarks in multi-select mode
+                                $checkmark.show();
+                                $item.attr('data-option-type','multiple'); // Optional: Add data attribute for styling
+                            }
+                        } else if (!newModeIsSingleSelect) {
+                             // If in multi-select mode and no checkmark exists, maybe add one?
+                             // Or assume checkmarks are added during loadSelectOptions based on mode.
+                             // For now, we'll assume checkmarks are handled during load/initial render.
+                             // If checkmarks are *only* added here, you'd need to create them.
+                             // Let's add a check to ensure checkmarks are present in multi-select if they aren't.
+                              if (!$item.find('.checkmark').length) {
+                                  $item.prepend($('<span class="checkmark bi bi-check"></span>'));
+                              }
+                             $item.attr('data-option-type','multiple');
+                        } else {
+                             // In single-select mode, ensure no checkmark exists
+                             $checkmark.remove(); // Remove if it somehow exists
+                             $item.attr('data-option-type','single');
+                        }
+                    });
+                     console.log(`[${this.containerId}] Checkmark visibility adjusted.`);
+                }
+
+
+                // --- Handle selection state based on new mode ---
+
+                if (newModeIsSingleSelect) {
+                    // If switching to single-select, clear all selections
+                    // A single-select should only ever have one selected item.
+                    // Clearing all is the safest way to transition.
+                    this.setSelectedValues([]); // This method handles updating display and triggering change
+                    console.log(`[${this.containerId}] Cleared all selections when switching to single-select.`);
+
+                } else { // Switching to multi-select
+                     // If switching to multi-select, selection state remains as is.
+                     // No specific action needed here other than updating display and select all.
+                     // The display and select all are updated by setSelectedValues([]) above if coming from single.
+                     // If coming from multi to multi (should be caught by the initial check), nothing happens.
+                      this.updateDisplay(); // Ensure display is correct for multi-select format
+                      const $optionItems = this._getSelectAllTargetOptions();
+                      const totalOptions = $optionItems.length;
+                      const selectedOptionsCount = $optionItems.filter('.selected-option').length;
+                      const allSelected = totalOptions > 0 && selectedOptionsCount === totalOptions;
+                      this._updateSelectAllButton(allSelected); // Update Select All button state
+                      console.log(`[${this.containerId}] Updated display and Select All for multi-select.`);
+                }
+
+
+                // Clear search and show all options
+                this.$searchInput?.val(''); // Use optional chaining
+                this.$customOptionsList?.find('li').show(); // Use optional chaining
+                this._updateActiveDescendant(null); // Clear active descendant
+                this.$liveRegion?.text(''); // Use optional chaining
+
+
+                // Trigger a custom event to notify external listeners about the mode change
+                this.$container?.trigger('modechange.customMultiSelect', [this.options.singleSelect]); // Use optional chaining
+                console.log(`[${this.containerId}] 'modechange.customMultiSelect' event triggered.`);
+           }
+
            /**
             * Sets the selected options based on an array of text contents.
             * Deselects all options first, then selects those matching the provided texts.
