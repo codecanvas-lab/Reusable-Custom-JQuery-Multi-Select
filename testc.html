@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Highcharts - Dynamic Count, Consistent Y-Axis (2:1 Ratio)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://code.highcharts.com/11.4.0/highcharts.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        h2 {
+            font-weight: 600;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .controls button {
+            padding: 8px 15px;
+            font-size: 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+         .controls button.active {
+            background-color: #0056b3;
+            font-weight: bold;
+        }
+
+        #chartsWrapper {
+            width: 90vw;
+            height: 45vw;
+            max-width: 1200px;
+            max-height: 600px;
+            border: 1px solid #c5cdd3;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            /* height is set by JS */
+        }
+
+        /* Separation lines applied dynamically by JS if needed, or by CSS if always the same structure */
+        /* For simplicity, we'll ensure border-bottom is only on containers that are not the last one */
+
+    </style>
+</head>
+<body>
+
+    <h2>Dynamic Chart Rendering (1-4 Charts) - Consistent Y-Axis</h2>
+
+    <div class="controls">
+        <button data-count="1">1 Chart</button>
+        <button data-count="2">2 Charts</button>
+        <button data-count="3">3 Charts</button>
+        <button data-count="4" class="active">4 Charts</button>
+    </div>
+
+    <div id="chartsWrapper">
+        <!-- Chart containers will be added here by JavaScript -->
+    </div>
+
+    <script>
+    $(function () {
+        let chartInstances = [];
+        let currentChartInternalMargins = []; // Will be populated dynamically
+
+        const TITLE_MT = 35;
+        const XAXIS_MB = 55;
+        const INTER_CHART_MT = 10;
+        const INTER_CHART_MB = 20;
+
+        // Common data for all series
+        const sampleData = [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4];
+        // Determine overall min/max for consistent Y-axis scaling
+        const dataMin = Math.min(...sampleData);
+        const dataMax = Math.max(...sampleData);
+        // Add a little padding to min/max for better visual appearance, or use fixed values
+        const yAxisMin = Math.floor(dataMin / 10) * 10; // Example: round down to nearest 10
+        const yAxisMax = Math.ceil(dataMax / 10) * 10 + 10; // Example: round up to nearest 10 and add some padding
+
+
+        function generateChartInternalMargins(numCharts) {
+            const margins = [];
+            for (let i = 0; i < numCharts; i++) {
+                let mt, mb;
+                const chartId = 'chartContainer' + i;
+
+                if (numCharts === 1) {
+                    mt = TITLE_MT; // Has title
+                    mb = XAXIS_MB; // Has X-axis
+                } else {
+                    if (i === 0) { // First chart of multiple
+                        mt = TITLE_MT; // Has title
+                        mb = INTER_CHART_MB;
+                    } else if (i === numCharts - 1) { // Last chart of multiple
+                        mt = INTER_CHART_MT;
+                        mb = XAXIS_MB; // Has X-axis
+                    } else { // Middle chart
+                        mt = INTER_CHART_MT;
+                        mb = INTER_CHART_MB;
+                    }
+                }
+                margins.push({ id: chartId, mt: mt, mb: mb });
+            }
+            return margins;
+        }
+
+
+        function adjustChartLayouts() {
+            const chartsWrapper = $('#chartsWrapper');
+            if (!chartsWrapper.length || currentChartInternalMargins.length === 0) return;
+
+            const chartsWrapperHeight = chartsWrapper.height();
+            const numCharts = currentChartInternalMargins.length;
+            const numCssBorders = Math.max(0, numCharts - 1);
+            const cssBordersHeight = numCssBorders * 1; // Assuming 1px borders
+
+            const totalHighchartsInternalMarginsSum = currentChartInternalMargins.reduce((sum, m) => sum + m.mt + m.mb, 0);
+
+            const totalVerticalSpaceForDivs = chartsWrapperHeight - cssBordersHeight;
+            const totalPlotSpaceAvailable = totalVerticalSpaceForDivs - totalHighchartsInternalMarginsSum;
+
+            let targetPlotHeight = totalPlotSpaceAvailable / numCharts;
+
+            const minSensiblePlotHeight = 20;
+            if (targetPlotHeight < minSensiblePlotHeight) {
+                targetPlotHeight = minSensiblePlotHeight;
+            }
+
+            currentChartInternalMargins.forEach((marginConfig, index) => {
+                const div = $('#' + marginConfig.id);
+                if (div.length) {
+                    const divHeight = targetPlotHeight + marginConfig.mt + marginConfig.mb;
+                    div.height(divHeight);
+
+                    if (chartInstances[index]) {
+                        chartInstances[index].reflow();
+                    }
+                }
+            });
+        }
+
+        function initializeAllCharts() {
+            const numCharts = currentChartInternalMargins.length;
+            const commonChartOptions = {
+                chart: { type: 'line' },
+                credits: { enabled: false },
+                legend: { enabled: false },
+                yAxis: [
+                    { // Primary Y-axis (left)
+                        title: { text: null },
+                        labels: {
+                            style: { fontSize: '10px', color: '#555'}
+                        },
+                        gridLineColor: '#e6e6e6',
+                        gridLineWidth: 0,
+                        lineColor: '#ccd6eb',
+                        lineWidth: 1,
+                        min: yAxisMin, // Enforce consistent min
+                        max: yAxisMax  // Enforce consistent max
+                    },
+                    { // Secondary Y-axis (right) - Now with labels
+                        title: { text: null },
+                        labels: {
+                            enabled: true, // Enable labels for the right Y-axis
+                            style: { fontSize: '10px', color: '#555'} // Style them similarly
+                        },
+                        opposite: true,
+                        gridLineWidth: 0, // No grid lines from this axis to avoid duplication
+                        lineColor: '#ccd6eb',
+                        lineWidth: 1,
+                        min: yAxisMin, // Enforce consistent min for the right axis too
+                        max: yAxisMax  // Enforce consistent max for the right axis too
+                    }
+                ],
+                plotOptions: { series: { color: '#007bff', marker: { enabled: false }}},
+                series: [{
+                    name: 'Sample Data',
+                    data: sampleData, // Use the globally defined sampleData
+                    showInLegend: false
+                }],
+                 xAxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], lineColor: '#ccd6eb', tickColor: '#ccd6eb', labels: { style: { fontSize: '10px', color: '#555' }}, title: { style: { fontSize: '11px', color: '#333' }}}
+            };
+
+            currentChartInternalMargins.forEach((marginConfig, index) => {
+                let specificOptions = {
+                    chart: {
+                        marginTop: marginConfig.mt,
+                        marginBottom: marginConfig.mb
+                    },
+                    title: { text: null },
+                    xAxis: {
+                        labels: { enabled: false },
+                        title: { text: null }
+                    }
+                };
+
+                // Apply title only to the first chart
+                if (index === 0) {
+                    specificOptions.title.text = `Chart ${index + 1}${numCharts > 1 ? ' (Top)' : ''}: With Title`;
+                }
+
+                // Apply X-axis labels & title only to the last chart
+                if (index === numCharts - 1) {
+                    specificOptions.xAxis.labels.enabled = true;
+                    specificOptions.xAxis.title.text = `X-Axis (Chart ${index + 1}${numCharts > 1 ? ' - Bottom' : ''})`;
+                }
+
+                const chartOptions = $.extend(true, {}, commonChartOptions, specificOptions);
+                const chart = Highcharts.chart(marginConfig.id, chartOptions);
+                chartInstances.push(chart);
+            });
+        }
+
+        function renderCharts(numCharts) {
+            // Clear existing charts and containers
+            chartInstances.forEach(chart => chart.destroy());
+            chartInstances = [];
+            $('#chartsWrapper').empty();
+
+            // Generate margin configurations for the current number of charts
+            currentChartInternalMargins = generateChartInternalMargins(numCharts);
+
+            // Create new chart containers
+            currentChartInternalMargins.forEach((marginConfig, index) => {
+                const div = $('<div>')
+                    .attr('id', marginConfig.id)
+                    .addClass('chart-container');
+                if (index < numCharts - 1) { // Add border to all but the last
+                    div.css('border-bottom', '1px solid #dce0e3');
+                }
+                $('#chartsWrapper').append(div);
+            });
+
+            adjustChartLayouts(); // Calculate and set initial div heights
+            initializeAllCharts(); // Create charts in the sized divs
+        }
+
+
+        $('.controls button').on('click', function() {
+            const numCharts = parseInt($(this).data('count'));
+            $('.controls button').removeClass('active');
+            $(this).addClass('active');
+            renderCharts(numCharts);
+        });
+
+        // Initial render (e.g., 4 charts by default)
+        renderCharts(4);
+
+        // Re-adjust layout on window resize
+        let resizeTimer;
+        $(window).on('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function() {
+                adjustChartLayouts(); // Recalculate heights and reflow charts
+            }, 250); // Debounce resize event
+        });
+    });
+    </script>
+
+</body>
+</html>
